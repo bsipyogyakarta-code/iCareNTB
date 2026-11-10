@@ -239,19 +239,53 @@ foreach ($pakanList as $item) {
                 </div>
             </div>
 
-            <!-- Single Big Map Container -->
-            <div class="bg-white rounded-3xl p-3 sm:p-4 border border-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] relative">
-                <div id="public-distribution-map" class="w-full h-[480px] sm:h-[560px] rounded-2xl overflow-hidden border border-slate-200 shadow-inner z-10"></div>
-                <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-500 px-2 gap-2">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex items-center space-x-1.5">
-                            <span class="w-3 h-3 rounded-full bg-emerald-600 border-2 border-white shadow-xs inline-block"></span>
-                            <span class="text-[11px] font-semibold text-slate-600">Titik Lokasi Penyaluran</span>
+            <!-- Map & Distribution Details Container Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <!-- Big Map Container (8 cols on large screens) -->
+                <div class="lg:col-span-8 bg-white rounded-3xl p-3 sm:p-4 border border-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] relative flex flex-col">
+                    <div id="public-distribution-map" class="w-full h-[460px] sm:h-[550px] rounded-2xl overflow-hidden border border-slate-200 shadow-inner z-10"></div>
+                    <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-500 px-2 gap-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="w-3 h-3 rounded-full bg-emerald-600 border-2 border-white shadow-xs inline-block"></span>
+                                <span class="text-[11px] font-semibold text-slate-600">Titik Penyaluran Pakan</span>
+                            </div>
+                            <span class="text-slate-300">|</span>
+                            <span class="text-[11px] text-slate-400">Klik marker pada peta untuk melihat rincian produk yang disalurkan</span>
                         </div>
-                        <span class="text-slate-300">|</span>
-                        <span class="text-[11px] text-slate-400">Klik pin pada peta untuk melihat detail penyaluran</span>
+                        <span class="text-[11px] text-slate-400 font-mono">iCare NTB Geo-Distribution</span>
                     </div>
-                    <span class="text-[11px] text-slate-400 font-mono">iCare NTB Geo-Distribution Network</span>
+                </div>
+
+                <!-- Side Panel: Rincian Produk & Lokasi Penyaluran (4 cols on large screens) -->
+                <div class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col h-[520px] sm:h-[610px]">
+                    <div class="pb-3 border-b border-slate-100 shrink-0">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-black text-slate-900 flex items-center space-x-2">
+                                <span>🌾</span>
+                                <span>Rincian Produk Tersalurkan</span>
+                            </h3>
+                            <span id="pub-total-volume-badge" class="px-2.5 py-1 text-[11px] font-black text-emerald-800 bg-emerald-50 rounded-xl border border-emerald-100">
+                                Total: 0 kg
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Daftar produk pakan yang telah disalurkan ke kelompok tani & peternak.</p>
+                        
+                        <!-- Search / Filter in Side Panel -->
+                        <div class="mt-3 relative">
+                            <input type="text" id="pub-dist-search" placeholder="Cari nama produk / lokasi..." 
+                                   oninput="filterPublicDistList(this.value)"
+                                   class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder:text-slate-400">
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable list of distributed items -->
+                    <div id="pub-dist-list-container" class="flex-1 overflow-y-auto space-y-2.5 mt-3 pr-1 custom-scroll">
+                        <!-- Populated by JS -->
+                    </div>
                 </div>
             </div>
         </section>

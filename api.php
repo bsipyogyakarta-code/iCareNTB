@@ -69,7 +69,7 @@ try {
             $itemId = $_GET['item_id'] ?? null;
             $type = $_GET['type'] ?? null;
             $sql = "
-                SELECT m.*, i.name as item_name, i.code as item_code, i.unit, i.type as item_type, i.image_url
+                SELECT m.*, i.name as item_name, i.code as item_code, i.unit, i.type as item_type, i.image_url, i.category as item_category
                 FROM inventory_mutations m
                 JOIN inventory_items i ON m.item_id = i.id
                 WHERE m.latitude IS NOT NULL AND m.longitude IS NOT NULL
