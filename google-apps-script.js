@@ -1,19 +1,19 @@
 /**
- * GOOGLE APPS SCRIPT - SINKRONISASI RUMAH PRODUKSI BRMP DIY
+ * GOOGLE APPS SCRIPT - SINKRONISASI iCare NTB
  * 
  * PANDUAN PEMASANGAN (CUMA 2 MENIT):
- * 1. Buat Google Sheet baru di Google Drive Anda (beri judul: "Database Rumah Produksi BRMP DIY").
+ * 1. Buat Google Sheet baru di Google Drive Anda (beri judul: "Database iCare NTB").
  * 2. Klik menu "Extensions" (Ekstensi) > "Apps Script".
  * 3. Hapus semua kode default di Apps Script, lalu COPY dan PASTE seluruh isi script ini.
  * 4. Klik tombol "Deploy" (Terapkan) di pojok kanan atas > pilih "New deployment" (Penerapan baru).
  * 5. Klik ikon gerigi (Select type) > pilih "Web app".
  * 6. Atur:
- *    - Description: "BRMP DIY API"
+ *    - Description: "iCare NTB API"
  *    - Execute as: "Me" (email Anda)
  *    - Who has access: "Anyone" (Siapa saja - agar web hosting bisa kirim data)
  * 7. Klik "Deploy" > Berikan izin (Authorize access) akun Google Anda.
  * 8. SALIN "Web app URL" (berawalan https://script.google.com/macros/s/...)
- * 9. Tempelkan URL tersebut ke Dashboard Admin web Rumah Produksi!
+ * 9. Tempelkan URL tersebut ke Dashboard Admin web iCare NTB!
  */
 
 function doGet(e) {
@@ -23,7 +23,7 @@ function doGet(e) {
   if (action === 'test') {
     return createJsonResponse({
       success: true,
-      message: 'Koneksi Google Apps Script BRMP DIY Berhasil Aktif!',
+      message: 'Koneksi Google Apps Script iCare NTB Berhasil Aktif!',
       spreadsheet_name: ss.getName(),
       timestamp: new Date().toISOString()
     });
