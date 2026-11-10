@@ -184,18 +184,6 @@ foreach ($pakanList as $item) {
                             <?= htmlspecialchars($item['name']) ?>
                         </h3>
 
-                        <!-- Spesifikasi Nutrisi Ringkas -->
-                        <div class="mt-2 py-1.5 px-2.5 bg-slate-50/80 rounded-xl border border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
-                            <div>
-                                <span class="text-slate-400 block text-[9px] uppercase font-bold tracking-wider"><?= htmlspecialchars($item['spec_1_label'] ?: 'Protein') ?></span>
-                                <span class="font-black text-slate-800"><?= htmlspecialchars($item['spec_1_value'] ?: '-') ?></span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-slate-400 block text-[9px] uppercase font-bold tracking-wider"><?= htmlspecialchars($item['spec_2_label'] ?: 'Kadar Air') ?></span>
-                                <span class="font-black text-slate-800"><?= htmlspecialchars($item['spec_2_value'] ?: '-') ?></span>
-                            </div>
-                        </div>
-
                         <!-- Stock Box Container -->
                         <div class="bg-slate-50/80 rounded-2xl p-2.5 border border-slate-100 flex items-center justify-between mt-2.5">
                             <span class="text-[11px] font-semibold text-slate-500">Stok Ketersediaan:</span>
@@ -208,7 +196,7 @@ foreach ($pakanList as $item) {
                     <!-- Card Bottom Action Link (Read-Only Publik) -->
                     <div class="mt-4 pt-3 border-t border-slate-100">
                         <button type="button" onclick='openDetailModalPublic(<?= json_encode($item) ?>)' class="w-full inline-flex items-center justify-center space-x-1.5 py-2.5 px-4 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 rounded-xl transition-smooth shadow-2xs cursor-pointer group/link">
-                            <span>Detail Spesifikasi & Nutrisi</span>
+                            <span>Lihat Detail & Pemesanan</span>
                             <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover/link:translate-x-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
@@ -266,47 +254,26 @@ foreach ($pakanList as $item) {
                 <img id="pub-detail-img" src="" alt="Foto Pakan Jadi" class="max-h-full max-w-full object-contain rounded-xl">
             </div>
 
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span class="text-slate-400 block">Kategori:</span>
-                    <span id="pub-detail-category" class="font-bold text-slate-800">-</span>
+            <!-- Stok Ketersediaan Saja -->
+            <div class="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-emerald-800/80 block">Stok Ketersediaan</span>
+                    <span id="pub-detail-stock" class="text-2xl font-black text-emerald-700">0 kg</span>
                 </div>
-                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span class="text-slate-400 block">Fase Target:</span>
-                    <span id="pub-detail-stage" class="font-bold text-slate-800">-</span>
-                </div>
-                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span class="text-slate-400 block">Stok Ketersediaan:</span>
-                    <span id="pub-detail-stock" class="font-black text-emerald-700">0</span>
-                </div>
-                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <span class="text-slate-400 block">Harga Patokan:</span>
-                    <span id="pub-detail-price" class="font-bold text-slate-800">Rp 0</span>
-                </div>
+                <span class="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">Tersedia</span>
             </div>
 
-            <!-- Parameter Mutu -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2.5">Parameter Mutu & Kandungan Nutrisi (Uji Lab)</h4>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between py-1 border-b border-slate-200/60">
-                        <span id="pub-detail-spec1-label" class="text-slate-600 font-medium">Protein Kasar</span>
-                        <span id="pub-detail-spec1-val" class="font-bold text-slate-800">-</span>
+            <!-- Nomor WhatsApp yang Bisa Dihubungi (Kosongkan dulu) -->
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
+                <span class="text-xs font-semibold text-slate-500 block mb-1.5">Nomor WhatsApp yang Bisa Dihubungi:</span>
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                        </svg>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-slate-200/60">
-                        <span id="pub-detail-spec2-label" class="text-slate-600 font-medium">Kadar Air</span>
-                        <span id="pub-detail-spec2-val" class="font-bold text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1">
-                        <span id="pub-detail-spec3-label" class="text-slate-600 font-medium">FCR Target</span>
-                        <span id="pub-detail-spec3-val" class="font-bold text-slate-800">-</span>
-                    </div>
+                    <span id="pub-detail-wa" class="font-bold text-slate-700 text-sm">-</span>
                 </div>
-            </div>
-
-            <div class="text-xs text-slate-500">
-                <div>Lokasi Gudang: <span id="pub-detail-location" class="font-semibold text-slate-700">Gudang Utama BRMP DIY</span></div>
-                <div class="pt-1.5 text-[11px] text-slate-500 leading-relaxed" id="pub-detail-desc">-</div>
             </div>
 
             <div class="pt-3 border-t border-slate-100 flex items-center justify-end">

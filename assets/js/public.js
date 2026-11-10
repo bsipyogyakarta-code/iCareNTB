@@ -31,32 +31,32 @@ document.querySelectorAll('dialog').forEach(dialog => {
     });
 });
 
-// Modal Detail Spesifikasi Pakan Jadi (Read-Only)
+// Modal Detail Pakan Jadi (Read-Only Publik)
 function openDetailModalPublic(item) {
     if (!item) return;
     currentPublicDetailItem = item;
 
-    document.getElementById('pub-detail-code').textContent = item.code || '-';
-    document.getElementById('pub-detail-name').textContent = item.name || '-';
-    document.getElementById('pub-detail-category').textContent = item.category || '-';
-    document.getElementById('pub-detail-stage').textContent = item.target_stage || 'Semua Fase Pertumbuhan';
-    document.getElementById('pub-detail-stock').textContent = `${(parseFloat(item.stock_current) || 0).toLocaleString('id-ID')} ${item.unit || 'kg'}`;
-    document.getElementById('pub-detail-price').textContent = item.price_per_unit > 0 ? `Rp ${(parseFloat(item.price_per_unit) || 0).toLocaleString('id-ID')} / ${item.unit}` : 'Harga Pembinaan / Subsidi';
+    const codeEl = document.getElementById('pub-detail-code');
+    if (codeEl) codeEl.textContent = item.code || '-';
 
-    document.getElementById('pub-detail-spec1-label').textContent = item.spec_1_label || 'Protein Kasar';
-    document.getElementById('pub-detail-spec1-val').textContent = item.spec_1_value || '-';
-    document.getElementById('pub-detail-spec2-label').textContent = item.spec_2_label || 'Kadar Air';
-    document.getElementById('pub-detail-spec2-val').textContent = item.spec_2_value || '-';
-    document.getElementById('pub-detail-spec3-label').textContent = item.spec_3_label || 'FCR Target';
-    document.getElementById('pub-detail-spec3-val').textContent = item.spec_3_value || '-';
+    const nameEl = document.getElementById('pub-detail-name');
+    if (nameEl) nameEl.textContent = item.name || '-';
 
-    document.getElementById('pub-detail-location').textContent = item.storage_location || 'Gudang Utama BRMP DIY';
-    document.getElementById('pub-detail-desc').textContent = item.description || 'Pakan olahan bermutu hasil formulasi riset BRMP D.I. Yogyakarta yang telah melalui pengujian laboratorium terstandarisasi.';
+    const stockEl = document.getElementById('pub-detail-stock');
+    if (stockEl) {
+        stockEl.textContent = `${(parseFloat(item.stock_current) || 0).toLocaleString('id-ID')} ${item.unit || 'kg'}`;
+    }
+
+    const waEl = document.getElementById('pub-detail-wa');
+    if (waEl) {
+        // Dikosongkan dulu sesuai permintaan
+        waEl.textContent = '-';
+    }
 
     const imgEl = document.getElementById('pub-detail-img');
     if (imgEl) {
         imgEl.src = item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80';
-        imgEl.alt = item.name;
+        imgEl.alt = item.name || 'Foto Pakan';
     }
 
     openModal('modal-detail-public');
