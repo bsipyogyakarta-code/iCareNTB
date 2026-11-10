@@ -9,7 +9,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 // Proteksi hak akses CRUD khusus admin
 $mutationActions = [
-    'add_item', 'update_item', 'delete_item', 'quick_adjust', 
+    'add_item', 'update_item', 'delete_item', 'quick_adjust', 'quick_stock_adjust',
     'add_mutation', 'distribute_item', 'save_gsheet_url', 'sync_gsheet', 'pull_gsheet'
 ];
 
@@ -292,11 +292,10 @@ try {
             break;
 
         case 'add_mutation':
-            $pdo->beginTransaction();
-
             $itemId = (int)($_POST['item_id'] ?? $_POST['product_id'] ?? 0);
             $type = strtoupper(trim($_POST['type'] ?? ''));
-            $quantity = (float)($_POST['quantity'] ?? $_POST['amount'] ?? 0);
+            $rawQty = str_replace(',', '.', trim((string)($_POST['quantity'] ?? $_POST['amount'] ?? 0)));
+            $quantity = (float)$rawQty;
             $date = trim($_POST['mutation_date'] ?? date('Y-m-d'));
             $officer = trim($_POST['officer_name'] ?? 'Petugas Lapangan iCare NTB');
             $destination = trim($_POST['destination_or_source'] ?? $_POST['recipient_location'] ?? '-');
@@ -313,85 +312,130 @@ try {
             $autoDeduct = isset($_POST['auto_deduct_raw']) ? ($_POST['auto_deduct_raw'] === '1' || $_POST['auto_deduct_raw'] === 'true' || $_POST['auto_deduct_raw'] === 'on') : true;
 
             if (!$itemId || !in_array($type, ['IN', 'OUT']) || $quantity <= 0) {
-                $pdo->rollBack();
-                echo json_encode(['success' => false, 'message' => 'Data mutasi tidak valid!']);
+                echo json_encode(['success' => false, 'message' => 'Data mutasi tidak valid (kuantitas harus > 0)!']);
                 exit;
             }
 
-            // Fetch current item
-            $stmt = $pdo->prepare("SELECT id, name, type, stock_current, unit FROM inventory_items WHERE id = :id");
-            $stmt->execute([':id' => $itemId]);
-            $item = $stmt->fetch();
+            try {
+                $pdo->beginTransaction();
 
-            if (!$item) {
-                $pdo->rollBack();
-                echo json_encode(['success' => false, 'message' => 'Item tidak ditemukan!']);
-                exit;
+                // Fetch current item
+                $stmt = $pdo->prepare("SELECT id, name, type, stock_current, unit FROM inventory_items WHERE id = :id");
+                $stmt->execute([':id' => $itemId]);
+                $item = $stmt->fetch();
+
+                if (!$item) {
+                    $pdo->rollBack();
+                    echo json_encode(['success' => false, 'message' => 'Item tidak ditemukan!']);
+                    exit;
+                }
+
+                $currentStock = (float)$item['stock_current'];
+                if ($type === 'OUT' && $quantity > $currentStock) {
+                    $pdo->rollBack();
+                    echo json_encode(['success' => false, 'message' => "Stok tidak mencukupi! Sisa stok {$item['name']}: {$currentStock} {$item['unit']}"]);
+                    exit;
+                }
+
+                // Update product/item stock
+                $newStock = ($type === 'IN') ? ($currentStock + $quantity) : ($currentStock - $quantity);
+
+                $mutStmt = $pdo->prepare("
+                    INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes, latitude, longitude, location_name)
+                    VALUES (:item_id, :type, :quantity, :mutation_date, :officer_name, :destination_or_source, :notes, :latitude, :longitude, :location_name)
+                ");
+                $mutStmt->execute([
+                    ':item_id' => $itemId,
+                    ':type' => $type,
+                    ':quantity' => $quantity,
+                    ':mutation_date' => $date,
+                    ':officer_name' => $officer,
+                    ':destination_or_source' => $destination,
+                    ':notes' => $notes,
+                    ':latitude' => $latitude,
+                    ':longitude' => $longitude,
+                    ':location_name' => $locationName ?: null
+                ]);
+
+                $upStmt = $pdo->prepare("UPDATE inventory_items SET stock_current = :new_stock, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+                $upStmt->execute([':new_stock' => $newStock, ':id' => $itemId]);
+
+                $newId = (int)$pdo->lastInsertId();
+
+                // Pemotongan bahan baku otomatis berdasarkan resep (jika IN dan komoditas adalah produk)
+                $deductedSummary = [];
+                if ($type === 'IN' && $item['type'] === 'produk' && $autoDeduct) {
+                    $recStmt = $pdo->prepare("
+                        SELECT r.raw_material_id, r.amount_per_unit, i.name as raw_name, i.unit as raw_unit, i.stock_current as raw_stock
+                        FROM product_recipes r
+                        JOIN inventory_items i ON r.raw_material_id = i.id
+                        WHERE r.product_id = :pid
+                    ");
+                    $recStmt->execute([':pid' => $itemId]);
+                    $recipes = $recStmt->fetchAll();
+
+                    if (!empty($recipes)) {
+                        $updRaw = $pdo->prepare("UPDATE inventory_items SET stock_current = MAX(0, stock_current - :qty), updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+                        $insRawMut = $pdo->prepare("
+                            INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes)
+                            VALUES (:item_id, 'OUT', :quantity, :mdate, :officer, :dest, :notes)
+                        ");
+
+                        foreach ($recipes as $r) {
+                            $neededQty = round($r['amount_per_unit'] * $quantity, 4);
+                            if ($neededQty > 0) {
+                                $updRaw->execute([':qty' => $neededQty, ':id' => $r['raw_material_id']]);
+                                $insRawMut->execute([
+                                    ':item_id' => $r['raw_material_id'],
+                                    ':quantity' => $neededQty,
+                                    ':mdate' => $date,
+                                    ':officer' => $officer,
+                                    ':dest' => "Produksi {$item['name']}",
+                                    ':notes' => "Potong formula otomatis untuk produksi {$quantity} {$item['unit']} {$item['name']}"
+                                ]);
+                                $deductedSummary[] = "{$r['raw_name']} (-{$neededQty} {$r['raw_unit']})";
+                            }
+                        }
+                    }
+                }
+
+                $pdo->commit();
+
+                if ($type === 'IN' && $item['type'] === 'produk' && !empty($deductedSummary)) {
+                    $msg = "Produksi Berhasil!\n\n+{$quantity} {$item['unit']} {$item['name']} (Stok baru: " . number_format($newStock, 0, ',', '.') . " {$item['unit']}).\n\nBahan Baku Terpotong Otomatis:\n• " . implode("\n• ", $deductedSummary);
+                } else {
+                    $label = ($type === 'IN') ? 'Stok masuk berhasil dicatat' : 'Penyaluran / pemakaian stok berhasil dicatat';
+                    $msg = "$label! Sisa stok {$item['name']}: " . number_format($newStock, 0, ',', '.') . " {$item['unit']}.";
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => $msg,
+                    'mutation_id' => $newId,
+                    'item_id' => $itemId,
+                    'item_name' => $item['name'],
+                    'item_unit' => $item['unit'],
+                    'new_stock' => $newStock,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'location_name' => $locationName,
+                    'quantity' => $quantity,
+                    'destination' => $destination,
+                    'mutation_date' => $date
+                ]);
+
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                }
+
+                // Auto-sync ke Google Spreadsheet
+                @sync_all_to_google_sheet($pdo);
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                echo json_encode(['success' => false, 'message' => 'Gagal mencatat mutasi: ' . $e->getMessage()]);
             }
-
-            $currentStock = (float)$item['stock_current'];
-            if ($type === 'OUT' && $quantity > $currentStock) {
-                $pdo->rollBack();
-                echo json_encode(['success' => false, 'message' => "Stok tidak mencukupi! Sisa stok {$item['name']}: {$currentStock} {$item['unit']}"]);
-                exit;
-            }
-
-            // Update product/item stock
-            $newStock = ($type === 'IN') ? ($currentStock + $quantity) : ($currentStock - $quantity);
-
-            $mutStmt = $pdo->prepare("
-                INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes, latitude, longitude, location_name)
-                VALUES (:item_id, :type, :quantity, :mutation_date, :officer_name, :destination_or_source, :notes, :latitude, :longitude, :location_name)
-            ");
-            $mutStmt->execute([
-                ':item_id' => $itemId,
-                ':type' => $type,
-                ':quantity' => $quantity,
-                ':mutation_date' => $date,
-                ':officer_name' => $officer,
-                ':destination_or_source' => $destination,
-                ':notes' => $notes,
-                ':latitude' => $latitude,
-                ':longitude' => $longitude,
-                ':location_name' => $locationName ?: null
-            ]);
-
-            $upStmt = $pdo->prepare("UPDATE inventory_items SET stock_current = :new_stock, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
-            $upStmt->execute([':new_stock' => $newStock, ':id' => $itemId]);
-
-            $pdo->commit();
-
-            $newId = (int)$pdo->lastInsertId();
-
-            if ($type === 'IN' && $item['type'] === 'produk' && !empty($deductedSummary)) {
-                $msg = "Produksi Berhasil!\n\n+{$quantity} {$item['unit']} {$item['name']} (Stok baru: " . number_format($newStock, 0, ',', '.') . " {$item['unit']}).\n\nBahan Baku Terpotong Otomatis:\n• " . implode("\n• ", $deductedSummary);
-            } else {
-                $label = ($type === 'IN') ? 'Stok masuk berhasil dicatat' : 'Penyaluran / pemakaian stok berhasil dicatat';
-                $msg = "$label! Sisa stok {$item['name']}: " . number_format($newStock, 0, ',', '.') . " {$item['unit']}.";
-            }
-
-            echo json_encode([
-                'success' => true,
-                'message' => $msg,
-                'mutation_id' => $newId,
-                'item_id' => $itemId,
-                'item_name' => $item['name'],
-                'item_unit' => $item['unit'],
-                'new_stock' => $newStock,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'location_name' => $locationName,
-                'quantity' => $quantity,
-                'destination' => $destination,
-                'mutation_date' => $date
-            ]);
-
-            if (function_exists('fastcgi_finish_request')) {
-                fastcgi_finish_request();
-            }
-
-            // Auto-sync ke Google Spreadsheet
-            @sync_all_to_google_sheet($pdo);
 
             break;
 
@@ -496,7 +540,8 @@ try {
 
         case 'quick_stock_adjust':
             $itemId = (int)($_POST['item_id'] ?? 0);
-            $delta = (float)($_POST['delta'] ?? 0); // Positive or negative
+            $rawDelta = str_replace(',', '.', trim((string)($_POST['delta'] ?? 0)));
+            $delta = (float)$rawDelta;
             $reason = trim($_POST['reason'] ?? 'Penyesuaian stok cepat');
 
             if (!$itemId || $delta == 0) {
@@ -504,49 +549,60 @@ try {
                 exit;
             }
 
-            $item = $pdo->prepare("SELECT id, name, unit, stock_current FROM inventory_items WHERE id = :id");
-            $item->execute([':id' => $itemId]);
-            $it = $item->fetch();
+            try {
+                $item = $pdo->prepare("SELECT id, name, unit, stock_current FROM inventory_items WHERE id = :id");
+                $item->execute([':id' => $itemId]);
+                $it = $item->fetch();
 
-            if (!$it) {
-                echo json_encode(['success' => false, 'message' => 'Item tidak ditemukan!']);
-                exit;
+                if (!$it) {
+                    echo json_encode(['success' => false, 'message' => 'Item tidak ditemukan!']);
+                    exit;
+                }
+
+                $newStock = (float)$it['stock_current'] + $delta;
+                if ($newStock < 0) {
+                    echo json_encode(['success' => false, 'message' => "Stok tidak boleh bernilai negatif! (Sisa: {$it['stock_current']} {$it['unit']})"]);
+                    exit;
+                }
+
+                $pdo->beginTransaction();
+                $up = $pdo->prepare("UPDATE inventory_items SET stock_current = :new_stock, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+                $up->execute([':new_stock' => $newStock, ':id' => $itemId]);
+
+                $type = ($delta > 0) ? 'IN' : 'OUT';
+                $qty = abs($delta);
+                $mut = $pdo->prepare("
+                    INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes)
+                    VALUES (:item_id, :type, :quantity, :mdate, 'Petugas Lapangan iCare NTB', :dest, :notes)
+                ");
+                $mut->execute([
+                    ':item_id' => $itemId,
+                    ':type' => $type,
+                    ':quantity' => $qty,
+                    ':mdate' => date('Y-m-d'),
+                    ':dest' => 'Penyesuaian Inventaris Cepat',
+                    ':notes' => $reason
+                ]);
+
+                $pdo->commit();
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Stok {$it['name']} berhasil disesuaikan! Stok baru: " . number_format($newStock, 0, ',', '.') . " {$it['unit']}",
+                    'new_stock' => $newStock
+                ]);
+
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                }
+
+                // Auto-sync ke Google Spreadsheet
+                @sync_all_to_google_sheet($pdo);
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                echo json_encode(['success' => false, 'message' => 'Gagal memperbarui stok: ' . $e->getMessage()]);
             }
-
-            $newStock = (float)$it['stock_current'] + $delta;
-            if ($newStock < 0) {
-                echo json_encode(['success' => false, 'message' => "Stok tidak boleh bernilai negatif! (Sisa: {$it['stock_current']} {$it['unit']})"]);
-                exit;
-            }
-
-            $pdo->beginTransaction();
-            $up = $pdo->prepare("UPDATE inventory_items SET stock_current = :new_stock, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
-            $up->execute([':new_stock' => $newStock, ':id' => $itemId]);
-
-            $type = ($delta > 0) ? 'IN' : 'OUT';
-            $qty = abs($delta);
-            $mut = $pdo->prepare("
-                INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes)
-                VALUES (:item_id, :type, :quantity, :mdate, 'Petugas Lapangan iCare NTB', :dest, :notes)
-            ");
-            $mut->execute([
-                ':item_id' => $itemId,
-                ':type' => $type,
-                ':quantity' => $qty,
-                ':mdate' => date('Y-m-d'),
-                ':dest' => 'Penyesuaian Inventaris Cepat',
-                ':notes' => $reason
-            ]);
-
-            $pdo->commit();
-            echo json_encode([
-                'success' => true,
-                'message' => "Stok {$it['name']} berhasil disesuaikan! Stok baru: " . number_format($newStock, 0, ',', '.') . " {$it['unit']}",
-                'new_stock' => $newStock
-            ]);
-
-            // Auto-sync ke Google Spreadsheet
-            @sync_all_to_google_sheet($pdo);
 
             break;
 

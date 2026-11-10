@@ -374,7 +374,7 @@ function openDetailModal(item) {
     document.getElementById('detail-name').textContent = item.name;
     document.getElementById('detail-type').textContent = item.type.toUpperCase().replace('_', ' ');
     document.getElementById('detail-category').textContent = item.category;
-    document.getElementById('detail-location').textContent = item.storage_location || 'Gudang Utama BRMP DIY';
+    document.getElementById('detail-location').textContent = item.storage_location || 'Gudang Utama iCare NTB';
     document.getElementById('detail-stock').textContent = `${Number(item.stock_current).toLocaleString('id-ID')} ${item.unit}`;
     document.getElementById('detail-min').textContent = `${Number(item.stock_minimum).toLocaleString('id-ID')} ${item.unit}`;
     document.getElementById('detail-price').textContent = `Rp ${Number(item.price_per_unit).toLocaleString('id-ID')}`;
@@ -751,7 +751,7 @@ function renderMinimapMarkers(locations) {
         const popupContent = `
             <div class="p-3.5 max-w-[260px] text-xs font-sans">
                 <div class="flex items-center space-x-1.5 text-emerald-700 font-extrabold text-[11px] mb-1 uppercase tracking-wider">
-                    <span>📍 ${escapeHtml(loc.location_name || 'D.I. Yogyakarta')}</span>
+                    <span>📍 ${escapeHtml(loc.location_name || 'Nusa Tenggara Barat')}</span>
                 </div>
                 <h4 class="font-bold text-slate-900 text-sm leading-snug mb-1">${escapeHtml(loc.item_name)}</h4>
                 <div class="bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg font-bold text-xs inline-block mb-2 border border-emerald-100">
@@ -948,8 +948,8 @@ async function openProductMapModal(item) {
     // Inisialisasi peta Leaflet khusus produk jika belum ada
     if (!singleProductMap && typeof L !== 'undefined') {
         singleProductMap = L.map('product-specific-map', {
-            center: [-7.801389, 110.364444],
-            zoom: 10,
+            center: [-8.65, 117.0],
+            zoom: 9,
             zoomControl: true,
             scrollWheelZoom: false
         });
@@ -1038,7 +1038,7 @@ function renderSingleProductMap(item, locations) {
         const popupContent = `
             <div class="p-3.5 max-w-[260px] text-xs font-sans">
                 <div class="flex items-center space-x-1.5 text-emerald-700 font-extrabold text-[11px] mb-1 uppercase tracking-wider">
-                    <span>📍 ${escapeHtml(loc.location_name || 'D.I. Yogyakarta')}</span>
+                    <span>📍 ${escapeHtml(loc.location_name || 'Nusa Tenggara Barat')}</span>
                 </div>
                 <h4 class="font-bold text-slate-900 text-sm leading-snug mb-1">${escapeHtml(loc.item_name)}</h4>
                 <div class="bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg font-bold text-xs inline-block mb-2 border border-emerald-100">
@@ -1083,7 +1083,7 @@ function renderSingleProductMap(item, locations) {
     if (bounds.length > 0) {
         singleProductMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
     } else {
-        singleProductMap.setView([-7.801389, 110.364444], 10);
+        singleProductMap.setView([-8.65, 117.0], 9);
     }
 }
 
@@ -1341,7 +1341,7 @@ async function showDistributionResultMap(data, item) {
 
     document.getElementById('res-item-name').textContent = itemName;
     document.getElementById('res-destination').textContent = data.destination || '-';
-    document.getElementById('res-location-name').textContent = data.location_name || 'D.I. Yogyakarta';
+    document.getElementById('res-location-name').textContent = data.location_name || 'Nusa Tenggara Barat';
     document.getElementById('res-quantity-display').textContent = `${Number(data.quantity).toLocaleString('id-ID')} ${unit}`;
     document.getElementById('res-remaining-stock').textContent = `${Number(data.new_stock).toLocaleString('id-ID')} ${unit}`;
 

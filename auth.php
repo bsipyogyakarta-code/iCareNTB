@@ -1,5 +1,5 @@
 <?php
-// auth.php - Helper Autentikasi Admin Rumah Produksi BRMP DIY
+// auth.php - Helper Autentikasi Admin iCare NTB
 
 if (session_status() === PHP_SESSION_NONE) {
     // Pada lingkungan serverless Vercel, pastikan path session tersimpan di /tmp
@@ -31,7 +31,7 @@ function admin_login(string $username, string $password): bool {
     // Menerima 'admin' / 'brmpdiy' atau 'admin' / 'admin123'
     if ($user === ADMIN_USERNAME && ($pass === ADMIN_PASSWORD || $pass === 'admin123')) {
         $_SESSION['is_admin'] = true;
-        $_SESSION['admin_user'] = 'Administrator BRMP';
+        $_SESSION['admin_user'] = 'Administrator iCare NTB';
         $_SESSION['admin_login_time'] = time();
         return true;
     }

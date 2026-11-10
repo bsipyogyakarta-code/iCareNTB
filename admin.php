@@ -755,8 +755,8 @@ $metricsPRD = getMetrics($produkList);
                     <span id="pmap-stat-points" class="text-lg font-black text-slate-800">0 Titik Lokasi</span>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span class="text-[11px] font-bold text-slate-500 block">Cakupan Wilayah DIY</span>
-                    <span id="pmap-stat-areas" class="text-xs font-bold text-slate-700 mt-1 block truncate">Sleman, Bantul, dll</span>
+                    <span class="text-[11px] font-bold text-slate-500 block">Cakupan Wilayah NTB</span>
+                    <span id="pmap-stat-areas" class="text-xs font-bold text-slate-700 mt-1 block truncate">Lombok, Sumbawa, dll</span>
                 </div>
             </div>
 
@@ -1308,7 +1308,7 @@ $metricsPRD = getMetrics($produkList);
                     <span>Cara Pasang Google Sheet (Cuma 2 Menit):</span>
                 </p>
                 <ol class="list-decimal list-inside space-y-1 pl-1">
-                    <li>Buat file baru di Google Spreadsheet (beri nama misal: <em>Database BRMP DIY</em>).</li>
+                    <li>Buat file baru di Google Spreadsheet (beri nama misal: <em>Database iCare NTB</em>).</li>
                     <li>Buka menu <strong>Extensions (Ekstensi) &gt; Apps Script</strong>.</li>
                     <li>Copy seluruh isi file <code class="bg-white px-1 py-0.5 rounded border border-slate-200 font-mono text-emerald-700">google-apps-script.js</code> lalu paste di Apps Script.</li>
                     <li>Klik <strong>Deploy &gt; New deployment &gt; Web app</strong> (pilih Who has access: <em>Anyone</em>), lalu salin URL-nya ke form di atas!</li>

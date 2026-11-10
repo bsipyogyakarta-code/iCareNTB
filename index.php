@@ -113,7 +113,7 @@ foreach ($pakanList as $item) {
                         Ketersediaan Pakan Jadi Bermutu & Bersertifikasi
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
-                        Katalog resmi produk formulasi pakan siap pakai untuk ikan air tawar, unggas, dan ternak ruminansia yang diproduksi dengan standar instrumen pengujian mutu BRMP D.I. Yogyakarta.
+                        Katalog resmi produk formulasi pakan siap pakai untuk ikan air tawar, unggas, dan ternak ruminansia yang diproduksi dengan standar instrumen pengujian mutu iCare NTB.
                     </p>
                 </div>
 

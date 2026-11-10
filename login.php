@@ -1,5 +1,5 @@
 <?php
-// login.php - Halaman Masuk Administrator Rumah Produksi BRMP DIY
+// login.php - Halaman Masuk Administrator iCare NTB
 require_once __DIR__ . '/auth.php';
 
 $error = '';
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Administrator &bull; Rumah Produksi BRMP DIY</title>
+    <title>Login Administrator &bull; iCare NTB</title>
     <link rel="icon" type="image/png" href="assets/img/logo-brmp.png">
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -61,11 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="text-center mb-8">
             <a href="index.php" class="inline-block group mb-3">
                 <div class="w-18 h-18 p-2 bg-white rounded-3xl shadow-lg border border-slate-100 flex items-center justify-center mx-auto transform group-hover:scale-105 transition-smooth">
-                    <img src="assets/img/logo-brmp.png" alt="Logo Resmi BRMP DIY" class="w-14 h-14 object-contain">
+                    <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-14 h-14 object-contain">
                 </div>
             </a>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">RUMAH PRODUKSI</h1>
-            <p class="text-xs font-bold text-emerald-700 tracking-wider uppercase mt-0.5">BRMP D.I. YOGYAKARTA</p>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">iCare NTB</h1>
+            <p class="text-xs font-bold text-emerald-700 tracking-wider uppercase mt-0.5">SISTEM MONITORING & PRODUKSI PAKAN</p>
             <p class="text-xs text-slate-500 mt-1">Panel Khusus Administrator &bull; Manajemen & CRUD Sistem</p>
         </div>
 
