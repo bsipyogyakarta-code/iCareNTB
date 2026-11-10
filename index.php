@@ -87,13 +87,7 @@ foreach ($pakanList as $item) {
                         </svg>
                     </button>
 
-                    <?php if (is_admin_logged_in()): ?>
-                    <!-- Tombol khusus jika Administrator sedang aktif login -->
-                    <a href="admin.php" class="inline-flex items-center space-x-1.5 px-4 py-2 text-xs sm:text-sm font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-full shadow-md hover:shadow-lg transition-smooth border border-amber-300/60">
-                        <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <span>⚙️ Panel Admin</span>
-                    </a>
-                    <?php endif; ?>
+                    <!-- Panel Admin disembunyikan dari halaman publik sesuai instruksi -->
                 </div>
             </div>
         </div>
@@ -245,10 +239,7 @@ foreach ($pakanList as $item) {
                 </div>
             </div>
             <div class="text-center sm:text-right text-[11px] text-slate-400">
-                <p>&copy; <?= date('Y') ?> Balai Penerapan Standar Instrumen Pertanian / BRMP D.I. Yogyakarta.</p>
-                <p class="mt-0.5">
-                    <a href="login.php" class="text-emerald-700 font-bold hover:underline">Masuk Panel Admin untuk Manajemen Stok & Produksi &rarr;</a>
-                </p>
+                <p>&copy; <?= date('Y') ?> iCare NTB - Sistem Monitoring Produksi Pakan.</p>
             </div>
         </div>
     </footer>

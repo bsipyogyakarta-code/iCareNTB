@@ -993,7 +993,7 @@ $metricsPRD = getMetrics($produkList);
                                    class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-2xl p-1 bg-slate-50/50">
                         </div>
                         <div class="relative">
-                            <input type="url" name="image_url" id="add-image-url" placeholder="Atau paste link URL gambar foto (https://...)" 
+                            <input type="text" name="image_url" id="add-image-url" placeholder="Atau paste link URL gambar foto (https://...)" 
                                    oninput="previewAddImageUrl(this.value)"
                                    class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400">
                         </div>
@@ -1106,7 +1106,7 @@ $metricsPRD = getMetrics($produkList);
                 <div class="space-y-2">
                     <input type="file" name="image_file" id="edit-image-file" accept="image/*" onchange="previewEditImage(this)"
                            class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-2xl p-1 bg-slate-50/50">
-                    <input type="url" id="edit-image" name="image_url" placeholder="Atau link URL foto (https://...)" oninput="previewEditImageUrl(this.value)"
+                    <input type="text" id="edit-image" name="image_url" placeholder="Atau link URL foto (https://...)" oninput="previewEditImageUrl(this.value)"
                            class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
                     <div id="edit-image-preview-container" class="h-28 w-full bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center p-2 relative">
                         <img id="edit-image-preview" src="" alt="Foto Item" class="max-h-full max-w-full object-contain rounded-xl">

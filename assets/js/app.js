@@ -576,18 +576,50 @@ function handleDeductSelect(selectEl) {
     }
 }
 
-function previewAddImage(input) {
+function compressAndConvertImage(file, maxWidth = 800, quality = 0.8) {
+    return new Promise((resolve) => {
+        if (!file || !file.type.startsWith('image/')) {
+            return resolve('');
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataUrl);
+            };
+            img.onerror = () => resolve(e.target.result);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+    });
+}
+
+async function previewAddImage(input) {
     const container = document.getElementById('add-image-preview-container');
     const preview = document.getElementById('add-image-preview');
+    const urlInput = document.getElementById('add-image-url');
     if (!container || !preview) return;
 
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            container.classList.remove('hidden');
-        };
-        reader.readAsDataURL(input.files[0]);
+        const compressed = await compressAndConvertImage(input.files[0], 800, 0.8);
+        preview.src = compressed;
+        container.classList.remove('hidden');
+        if (urlInput) {
+            urlInput.value = compressed;
+        }
     }
 }
 
@@ -596,27 +628,28 @@ function previewAddImageUrl(url) {
     const preview = document.getElementById('add-image-preview');
     if (!container || !preview) return;
 
-    if (url && url.trim().startsWith('http')) {
+    if (url && (url.trim().startsWith('http') || url.trim().startsWith('data:image/'))) {
         preview.src = url.trim();
         container.classList.remove('hidden');
     }
 }
 
-function previewEditImage(input) {
+async function previewEditImage(input) {
     const preview = document.getElementById('edit-image-preview');
+    const urlInput = document.getElementById('edit-image');
     if (!preview) return;
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
+        const compressed = await compressAndConvertImage(input.files[0], 800, 0.8);
+        preview.src = compressed;
+        if (urlInput) {
+            urlInput.value = compressed;
+        }
     }
 }
 
 function previewEditImageUrl(url) {
     const preview = document.getElementById('edit-image-preview');
-    if (preview && url && url.trim().startsWith('http')) {
+    if (preview && url && (url.trim().startsWith('http') || url.trim().startsWith('data:image/'))) {
         preview.src = url.trim();
     }
 }

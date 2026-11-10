@@ -111,25 +111,29 @@ try {
                 exit;
             }
 
-            // Handle Foto: Upload file atau URL
-            $imageUrl = '';
-            if (!empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+            // Handle Foto: Base64, URL, atau Upload file
+            $imageUrl = trim($_POST['image_url'] ?? '');
+
+            if (empty($imageUrl) && !empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
                 $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                 $ext = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, $allowedExts)) {
                     $uploadsDir = __DIR__ . '/uploads';
                     if (!is_dir($uploadsDir)) {
-                        mkdir($uploadsDir, 0777, true);
+                        @mkdir($uploadsDir, 0777, true);
                     }
                     $filename = 'item_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
-                    if (move_uploaded_file($_FILES['image_file']['tmp_name'], $uploadsDir . '/' . $filename)) {
+                    if (@move_uploaded_file($_FILES['image_file']['tmp_name'], $uploadsDir . '/' . $filename)) {
                         $imageUrl = 'uploads/' . $filename;
+                    } else {
+                        // Fallback ke Base64 jika serverless read-only (misal Vercel)
+                        $raw = @file_get_contents($_FILES['image_file']['tmp_name']);
+                        if ($raw) {
+                            $mime = @mime_content_type($_FILES['image_file']['tmp_name']) ?: 'image/jpeg';
+                            $imageUrl = 'data:' . $mime . ';base64,' . base64_encode($raw);
+                        }
                     }
                 }
-            }
-
-            if (empty($imageUrl)) {
-                $imageUrl = trim($_POST['image_url'] ?? '');
             }
 
             if (empty($imageUrl)) {
@@ -403,22 +407,32 @@ try {
             }
 
             // Handle Foto Baru jika diunggah atau diisi URL
-            $imageUrl = $existing['image_url'];
-            if (!empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+            $imageUrl = trim($_POST['image_url'] ?? '');
+
+            if (empty($imageUrl) && !empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
                 $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                 $ext = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, $allowedExts)) {
                     $uploadsDir = __DIR__ . '/uploads';
                     if (!is_dir($uploadsDir)) {
-                        mkdir($uploadsDir, 0777, true);
+                        @mkdir($uploadsDir, 0777, true);
                     }
                     $filename = 'item_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
-                    if (move_uploaded_file($_FILES['image_file']['tmp_name'], $uploadsDir . '/' . $filename)) {
+                    if (@move_uploaded_file($_FILES['image_file']['tmp_name'], $uploadsDir . '/' . $filename)) {
                         $imageUrl = 'uploads/' . $filename;
+                    } else {
+                        // Fallback ke Base64 jika serverless read-only
+                        $raw = @file_get_contents($_FILES['image_file']['tmp_name']);
+                        if ($raw) {
+                            $mime = @mime_content_type($_FILES['image_file']['tmp_name']) ?: 'image/jpeg';
+                            $imageUrl = 'data:' . $mime . ';base64,' . base64_encode($raw);
+                        }
                     }
                 }
-            } elseif (!empty($_POST['image_url'])) {
-                $imageUrl = trim($_POST['image_url']);
+            }
+
+            if (empty($imageUrl)) {
+                $imageUrl = $existing['image_url'];
             }
 
             $upd = $pdo->prepare("
