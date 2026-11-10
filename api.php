@@ -274,6 +274,10 @@ try {
                 'message' => $msg,
                 'item_id' => $newItemId
             ]);
+
+            // Auto-sync ke Google Spreadsheet
+            @sync_all_to_google_sheet($pdo);
+
             break;
 
         case 'add_mutation':
@@ -370,6 +374,10 @@ try {
                 'destination' => $destination,
                 'mutation_date' => $date
             ]);
+
+            // Auto-sync ke Google Spreadsheet
+            @sync_all_to_google_sheet($pdo);
+
             break;
 
         case 'delete_item':
@@ -381,6 +389,10 @@ try {
             $del = $pdo->prepare("DELETE FROM inventory_items WHERE id = :id");
             $del->execute([':id' => $id]);
             echo json_encode(['success' => true, 'message' => 'Item berhasil dihapus dari sistem!']);
+
+            // Auto-sync ke Google Spreadsheet
+            @sync_all_to_google_sheet($pdo);
+
             break;
 
         case 'update_item':
@@ -452,6 +464,10 @@ try {
             ]);
 
             echo json_encode(['success' => true, 'message' => "Data '{$name}' berhasil diperbarui!"]);
+
+            // Auto-sync ke Google Spreadsheet
+            @sync_all_to_google_sheet($pdo);
+
             break;
 
         case 'quick_stock_adjust':
@@ -504,6 +520,10 @@ try {
                 'message' => "Stok {$it['name']} berhasil disesuaikan! Stok baru: " . number_format($newStock, 0, ',', '.') . " {$it['unit']}",
                 'new_stock' => $newStock
             ]);
+
+            // Auto-sync ke Google Spreadsheet
+            @sync_all_to_google_sheet($pdo);
+
             break;
 
         case 'get_stats':
