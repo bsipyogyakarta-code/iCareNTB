@@ -96,6 +96,17 @@ try {
         $pdo->exec("ALTER TABLE inventory_mutations ADD COLUMN longitude REAL");
         $pdo->exec("ALTER TABLE inventory_mutations ADD COLUMN location_name TEXT");
     }
+
+    // Auto-populate dari Google Spreadsheet jika database kosong (misal Vercel instance baru)
+    try {
+        $itemCount = (int)$pdo->query("SELECT COUNT(*) FROM inventory_items")->fetchColumn();
+        if ($itemCount === 0) {
+            require_once __DIR__ . '/google_sheets.php';
+            @pull_from_google_sheet($pdo);
+        }
+    } catch (Exception $syncEx) {
+        // Silently skip if network or config unavailable
+    }
 } catch (PDOException $e) {
     die("Database Connection Error: " . $e->getMessage());
 }

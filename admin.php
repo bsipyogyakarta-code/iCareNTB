@@ -136,7 +136,7 @@ $metricsPRD = getMetrics($produkList);
                     </button>
 
                     <!-- Tambah Data Baru (CRUD) -->
-                    <button onclick="openModal('modal-add-item')" class="inline-flex items-center space-x-1.5 px-4 py-2 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-full shadow-md transition-smooth border border-emerald-400/30">
+                    <button onclick="openAddModalWithType('produk')" class="inline-flex items-center space-x-1.5 px-4 py-2 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-full shadow-md transition-smooth border border-emerald-400/30">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
@@ -1000,7 +1000,7 @@ $metricsPRD = getMetrics($produkList);
                         Jumlah Berat <span class="text-rose-500">*</span>
                     </label>
                     <div class="relative">
-                        <input type="number" step="0.1" min="0.1" name="stock_current" id="add-stock" required placeholder="0" 
+                        <input type="number" step="0.1" min="0" name="stock_current" id="add-stock" required placeholder="0" 
                                class="w-full pl-3.5 pr-14 py-2.5 text-base border border-slate-300 rounded-2xl font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
                         <span class="absolute right-3.5 top-3 text-xs font-bold text-slate-400 uppercase">kg</span>
                     </div>
@@ -1032,19 +1032,24 @@ $metricsPRD = getMetrics($produkList);
                 </div>
 
                 <!-- Action Buttons Slide 1 -->
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100 flex-wrap gap-2">
                     <button type="button" onclick="closeModal('modal-add-item')" class="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-smooth">
                         Batal
                     </button>
-                    <!-- Untuk Pakan Jadi: Tombol Lanjut ke Slide 2 -->
-                    <button type="button" id="btn-next-slide" onclick="goToSlide2()" class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-md transition-smooth flex items-center space-x-1.5">
-                        <span>Lanjut: Potong Bahan Baku</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                    <!-- Untuk Bahan Baku: Tombol Langsung Simpan -->
-                    <button type="submit" id="btn-submit-single" class="hidden px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-md transition-smooth">
-                        Simpan Bahan Baku
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <!-- Untuk Pakan Jadi: Opsi Simpan Langsung (tanpa potong bahan) -->
+                        <button type="submit" id="btn-submit-direct-feed" class="px-4 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition-smooth flex items-center space-x-1.5 cursor-pointer">
+                            <span>💾 Simpan Langsung</span>
+                        </button>
+                        <!-- Untuk Pakan Jadi: Tombol Lanjut ke Slide 2 -->
+                        <button type="button" id="btn-next-slide" onclick="goToSlide2()" class="px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-md transition-smooth flex items-center space-x-1.5 cursor-pointer">
+                            <span>Lanjut: Potong Bahan ➡️</span>
+                        </button>
+                        <!-- Untuk Bahan Baku: Tombol Langsung Simpan -->
+                        <button type="submit" id="btn-submit-single" class="hidden px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-md transition-smooth cursor-pointer">
+                            Simpan Bahan Baku
+                        </button>
+                    </div>
                 </div>
             </div>
 

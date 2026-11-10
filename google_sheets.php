@@ -69,7 +69,7 @@ function send_gsheet_request(string $method = 'GET', array $payload = []): array
     }
 
     $ch = curl_init();
-    $timeout = 25;
+    $timeout = 8; // Timeout 8 detik agar aman dari limit timeout serverless (Vercel)
 
     if (strtoupper($method) === 'POST') {
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -174,18 +174,27 @@ function pull_from_google_sheet(PDO $pdo): array {
                 :spec_3_label, :spec_3_value, :description, CURRENT_TIMESTAMP
             )
             ON CONFLICT(code) DO UPDATE SET
+                name = excluded.name,
+                category = excluded.category,
                 stock_current = excluded.stock_current,
                 stock_minimum = excluded.stock_minimum,
                 storage_location = excluded.storage_location,
                 price_per_unit = excluded.price_per_unit,
+                image_url = CASE WHEN excluded.image_url IS NOT NULL AND excluded.image_url != '' THEN excluded.image_url ELSE inventory_items.image_url END,
                 updated_at = CURRENT_TIMESTAMP
         ");
 
         $count = 0;
         foreach ($result['items'] as $item) {
+            $itemType = $item['type'] ?? 'produk';
+            $defaultImg = ($itemType === 'bahan_baku')
+                ? 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&auto=format&fit=crop&q=80'
+                : 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80';
+            $imageUrl = !empty($item['image_url']) ? $item['image_url'] : $defaultImg;
+
             $upsertStmt->execute([
                 ':id' => $item['id'] ?? null,
-                ':type' => $item['type'] ?? 'produk',
+                ':type' => $itemType,
                 ':code' => $item['code'] ?? '',
                 ':name' => $item['name'] ?? '',
                 ':category' => $item['category'] ?? '',
@@ -195,7 +204,7 @@ function pull_from_google_sheet(PDO $pdo): array {
                 ':stock_minimum' => (float)($item['stock_minimum'] ?? 10),
                 ':storage_location' => $item['storage_location'] ?? '',
                 ':price_per_unit' => (int)($item['price_per_unit'] ?? 0),
-                ':image_url' => $item['image_url'] ?? '',
+                ':image_url' => $imageUrl,
                 ':spec_1_label' => $item['spec_1_label'] ?? '',
                 ':spec_1_value' => $item['spec_1_value'] ?? '',
                 ':spec_2_label' => $item['spec_2_label'] ?? '',

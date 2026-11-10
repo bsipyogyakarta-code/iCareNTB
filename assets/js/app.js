@@ -130,6 +130,25 @@ function setupEventHandlers() {
     if (formAddItem) {
         formAddItem.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Kumpulkan tombol submit untuk diberi state loading & disabled
+            const submitBtns = formAddItem.querySelectorAll('button[type="submit"], #btn-next-slide');
+            const originalContents = [];
+            submitBtns.forEach((btn, i) => {
+                originalContents[i] = btn.innerHTML;
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                btn.innerHTML = `<span class="inline-block animate-spin mr-1.5">⏳</span> Menyimpan...`;
+            });
+
+            const resetButtons = () => {
+                submitBtns.forEach((btn, i) => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    btn.innerHTML = originalContents[i];
+                });
+            };
+
             const formData = new FormData(formAddItem);
             formData.append('action', 'add_item');
 
@@ -140,12 +159,14 @@ function setupEventHandlers() {
                     showToast(data.message);
                     closeModal('modal-add-item');
                     formAddItem.reset();
-                    setTimeout(() => window.location.reload(), 1000);
+                    setTimeout(() => window.location.reload(), 800);
                 } else {
-                    showToast(data.message, 'error');
+                    showToast(data.message || 'Gagal menyimpan item.', 'error');
+                    resetButtons();
                 }
             } catch (err) {
-                showToast('Gagal menghubungi server.', 'error');
+                showToast('Gagal menghubungi server. Periksa koneksi internet Anda.', 'error');
+                resetButtons();
             }
         });
     }
@@ -432,6 +453,7 @@ function openAddModalWithType(type = 'produk') {
     const labelNameType = document.getElementById('label-name-type');
     const stepperBar = document.getElementById('add-stepper-bar');
     const btnNextSlide = document.getElementById('btn-next-slide');
+    const btnSubmitDirectFeed = document.getElementById('btn-submit-direct-feed');
     const btnSubmitSingle = document.getElementById('btn-submit-single');
     const deductContainer = document.getElementById('deduct-rows-container');
 
@@ -443,11 +465,12 @@ function openAddModalWithType(type = 'produk') {
 
     if (type === 'produk') {
         if (modalTitle) modalTitle.textContent = 'Tambah Pakan Jadi Baru';
-        if (modalSubtitle) modalSubtitle.textContent = 'Langkah 1 dari 2: Informasi Pakan';
+        if (modalSubtitle) modalSubtitle.textContent = 'Informasi Pakan & Stok Awal';
         if (modalIconContainer) modalIconContainer.textContent = '📦';
         if (labelNameType) labelNameType.textContent = 'Pakan Jadi';
         if (stepperBar) stepperBar.classList.remove('hidden');
         if (btnNextSlide) btnNextSlide.classList.remove('hidden');
+        if (btnSubmitDirectFeed) btnSubmitDirectFeed.classList.remove('hidden');
         if (btnSubmitSingle) btnSubmitSingle.classList.add('hidden');
     } else {
         if (modalTitle) modalTitle.textContent = 'Tambah Bahan Baku Baru';
@@ -456,6 +479,7 @@ function openAddModalWithType(type = 'produk') {
         if (labelNameType) labelNameType.textContent = 'Bahan Baku';
         if (stepperBar) stepperBar.classList.add('hidden');
         if (btnNextSlide) btnNextSlide.classList.add('hidden');
+        if (btnSubmitDirectFeed) btnSubmitDirectFeed.classList.add('hidden');
         if (btnSubmitSingle) btnSubmitSingle.classList.remove('hidden');
     }
 
@@ -491,8 +515,8 @@ function goToSlide2() {
         return;
     }
 
-    if (!stockInput || !stockInput.value || parseFloat(stockInput.value) <= 0) {
-        showToast('Silakan isi Jumlah Berat dengan benar (> 0 kg).', 'error');
+    if (!stockInput || stockInput.value === '' || parseFloat(stockInput.value) < 0) {
+        showToast('Silakan isi Jumlah Berat dengan benar (minimal 0 kg).', 'error');
         stockInput?.focus();
         return;
     }
