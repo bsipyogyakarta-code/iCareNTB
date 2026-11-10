@@ -26,8 +26,8 @@ foreach ($pakanList as $item) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Pakan Jadi &bull; Rumah Produksi BRMP DIY</title>
-    <!-- Favicon Logo Resmi BRMP DIY -->
+    <title>Katalog Pakan Jadi &bull; iCare NTB</title>
+    <!-- Favicon Logo Resmi -->
     <link rel="icon" type="image/png" href="assets/img/logo-brmp.png">
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +35,9 @@ foreach ($pakanList as $item) {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/custom.css">
     <script>
@@ -68,14 +71,14 @@ foreach ($pakanList as $item) {
             <div class="flex items-center justify-between h-20">
                 <!-- Branding -->
                 <div class="flex items-center space-x-3.5">
-                    <a href="index.php" class="relative group block shrink-0" title="Rumah Produksi BRMP DIY">
+                    <a href="index.php" class="relative group block shrink-0" title="iCare NTB - Sistem Monitoring Produksi Pakan">
                         <div class="w-13 h-13 p-1 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/25 shadow-lg backdrop-blur-md transition-smooth flex items-center justify-center">
-                            <img src="assets/img/logo-brmp.png" alt="Logo Resmi BRMP DIY" class="w-11 h-11 object-contain drop-shadow-md transform group-hover:scale-105 transition-smooth">
+                            <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-11 h-11 object-contain drop-shadow-md transform group-hover:scale-105 transition-smooth">
                         </div>
                     </a>
                     <div class="flex items-center space-x-2.5">
                         <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white uppercase drop-shadow-sm">Rumah Produksi</h1>
-                        <span class="bg-amber-400 text-slate-900 text-xs px-2.5 py-0.5 rounded-full font-black tracking-wider uppercase shadow-xs">BRMP DIY</span>
+                        <span class="bg-amber-400 text-slate-900 text-xs px-2.5 py-0.5 rounded-full font-black tracking-wider uppercase shadow-xs">iCare NTB</span>
                     </div>
                 </div>
 
@@ -214,15 +217,54 @@ foreach ($pakanList as $item) {
             </div>
         </section>
 
+        <!-- ======================================================== -->
+        <!-- PETA SEBARAN DISTRIBUSI PENYALURAN PAKAN (PUBLIK) -->
+        <!-- ======================================================== -->
+        <section class="mt-14 pt-8 border-t border-slate-200/80">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-5">
+                <div>
+                    <div class="inline-flex items-center space-x-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Peta Interaktif Penyaluran Pakan</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Peta Sebaran Titik Distribusi Pakan</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Transparansi titik lokasi penyaluran komoditas pakan ke kelompok tani binaan dan peternak di wilayah Nusa Tenggara Barat (NTB) dan sekitarnya.</p>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <button type="button" onclick="fitPublicDistributionMap()" class="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-smooth">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                        <span>Lihat Semua Titik</span>
+                    </button>
+                    <span id="pub-map-point-count" class="px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 rounded-xl">0 Titik Terdata</span>
+                </div>
+            </div>
+
+            <!-- Single Big Map Container -->
+            <div class="bg-white rounded-3xl p-3 sm:p-4 border border-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.04)] relative">
+                <div id="public-distribution-map" class="w-full h-[480px] sm:h-[560px] rounded-2xl overflow-hidden border border-slate-200 shadow-inner z-10"></div>
+                <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-500 px-2 gap-2">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-3 h-3 rounded-full bg-emerald-600 border-2 border-white shadow-xs inline-block"></span>
+                            <span class="text-[11px] font-semibold text-slate-600">Titik Lokasi Penyaluran</span>
+                        </div>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-[11px] text-slate-400">Klik pin pada peta untuk melihat detail penyaluran</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-mono">iCare NTB Geo-Distribution Network</span>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Footer Publik -->
     <footer class="bg-white border-t border-slate-200 mt-12 py-8 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div class="flex items-center space-x-3">
-                <img src="assets/img/logo-brmp.png" alt="Logo Resmi BRMP DIY" class="w-10 h-10 object-contain">
+                <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-10 h-10 object-contain">
                 <div class="text-left">
-                    <p class="font-extrabold text-slate-800 text-sm">Rumah Produksi &bull; BRMP D.I. Yogyakarta</p>
+                    <p class="font-extrabold text-slate-800 text-sm">Rumah Produksi &bull; iCare NTB</p>
                     <p class="text-[11px] text-slate-500">Katalog Resmi Ketersediaan Pakan Jadi Olahan Terstandar</p>
                 </div>
             </div>

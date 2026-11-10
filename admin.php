@@ -50,8 +50,8 @@ $metricsPRD = getMetrics($produkList);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin &bull; Rumah Produksi BRMP DIY</title>
-    <!-- Favicon Logo Resmi BRMP DIY -->
+    <title>Dashboard Admin &bull; iCare NTB</title>
+    <!-- Favicon Logo Resmi -->
     <link rel="icon" type="image/png" href="assets/img/logo-brmp.png">
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,15 +95,15 @@ $metricsPRD = getMetrics($produkList);
             <div class="flex items-center justify-between h-20">
                 <!-- Branding -->
                 <div class="flex items-center space-x-3.5">
-                    <a href="admin.php" class="relative group block shrink-0" title="Panel Administrator BRMP DIY">
+                    <a href="admin.php" class="relative group block shrink-0" title="Panel Administrator iCare NTB">
                         <div class="w-13 h-13 p-1 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/25 shadow-lg backdrop-blur-md transition-smooth flex items-center justify-center">
-                            <img src="assets/img/logo-brmp.png" alt="Logo Resmi BRMP DIY" class="w-11 h-11 object-contain drop-shadow-md transform group-hover:scale-105 transition-smooth">
+                            <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-11 h-11 object-contain drop-shadow-md transform group-hover:scale-105 transition-smooth">
                         </div>
                     </a>
                     <div>
                         <div class="flex items-center space-x-2">
                             <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white uppercase drop-shadow-sm">Panel Admin</h1>
-                            <span class="bg-amber-400 text-slate-900 text-xs px-2.5 py-0.5 rounded-full font-black tracking-wider uppercase shadow-xs">BRMP DIY</span>
+                            <span class="bg-amber-400 text-slate-900 text-xs px-2.5 py-0.5 rounded-full font-black tracking-wider uppercase shadow-xs">iCare NTB</span>
                         </div>
                         <p class="text-xs text-emerald-100/90 font-medium flex items-center space-x-1.5 mt-0.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse inline-block"></span>
@@ -251,7 +251,7 @@ $metricsPRD = getMetrics($produkList);
                 <div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Kelola Produk Pakan Jadi Olahan</h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-                        Manajemen katalog produk pakan jadi olahan BRMP DIY. Pantau stok ketersediaan siap salur, lakukan distribusi ke kelompok binaan, dan kelola varian pakan olahan.
+                        Manajemen katalog produk pakan jadi olahan iCare NTB. Pantau stok ketersediaan siap salur, lakukan distribusi ke kelompok binaan, dan kelola varian pakan olahan.
                     </p>
                 </div>
                 <div class="flex items-center space-x-3 shrink-0">
@@ -401,7 +401,7 @@ $metricsPRD = getMetrics($produkList);
                 <div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Kelola Stok Bahan Baku Pakan</h2>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-                        Inventarisasi bahan baku pakan untuk Rumah Produksi BRMP DIY. Stok bahan baku ini akan berkurang otomatis ketika pakan jadi diproduksi.
+                        Inventarisasi bahan baku pakan untuk Rumah Produksi iCare NTB. Stok bahan baku ini akan berkurang otomatis ketika pakan jadi diproduksi.
                     </p>
                 </div>
                 <div class="flex items-center space-x-3 shrink-0">
@@ -616,14 +616,14 @@ $metricsPRD = getMetrics($produkList);
     <footer class="bg-white border-t border-slate-200 mt-12 py-8 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div class="flex items-center space-x-3">
-                <img src="assets/img/logo-brmp.png" alt="Logo Resmi BRMP DIY" class="w-10 h-10 object-contain">
+                <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-10 h-10 object-contain">
                 <div class="text-left">
-                    <p class="font-extrabold text-slate-800 text-sm">Rumah Produksi &bull; BRMP D.I. Yogyakarta</p>
+                    <p class="font-extrabold text-slate-800 text-sm">Rumah Produksi &bull; iCare NTB</p>
                     <p class="text-[11px] text-slate-500">Panel Manajemen Khusus Administrator &bull; Hak Akses CRUD Terbatas</p>
                 </div>
             </div>
             <div class="text-center sm:text-right text-[11px] text-slate-400">
-                <p>&copy; <?= date('Y') ?> Balai Penerapan Standar Instrumen Pertanian / BRMP D.I. Yogyakarta.</p>
+                <p>&copy; <?= date('Y') ?> iCare NTB - Sistem Monitoring Produksi Pakan.</p>
                 <p class="mt-0.5"><a href="index.php" class="text-emerald-600 font-bold hover:underline">Kunjungi Halaman Publik (Pakan Jadi)</a></p>
             </div>
         </div>
@@ -803,7 +803,7 @@ $metricsPRD = getMetrics($produkList);
                 </div>
                 <div>
                     <h3 class="text-lg font-black text-slate-800">Catat Distribusi & Lokasi Penyaluran</h3>
-                    <p class="text-xs text-slate-500">Salurkan produk/benih ke penerima dan tandai titik lokasi pada peta D.I. Yogyakarta</p>
+                    <p class="text-xs text-slate-500">Salurkan produk/pakan ke penerima dan tandai titik lokasi pada peta distribusi</p>
                 </div>
             </div>
             <button onclick="closeModal('modal-distribute')" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
@@ -843,28 +843,49 @@ $metricsPRD = getMetrics($produkList);
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Tempat / Kelompok Tani Penerima *</label>
-                <input type="text" id="dist-recipient" name="recipient_location" required placeholder="Contoh: Gapoktan Tani Makmur, Kalasan, Sleman" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
+                <input type="text" id="dist-recipient" name="recipient_location" required placeholder="Contoh: Kelompok Tani Mandiri, Lombok Barat" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
             </div>
 
             <!-- Bagian Pemilihan Lokasi di Peta -->
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-slate-700">Tentukan Titik Koordinat Lokasi di Peta *</label>
-                    <span class="text-[11px] text-slate-400">Klik langsung pada peta untuk menandai</span>
+                    <span class="text-[11px] text-slate-400">Cari nama lokasi atau klik langsung di peta</span>
                 </div>
 
-                <div class="flex flex-wrap gap-1.5 mb-1.5">
-                    <span class="text-[10px] text-slate-400 font-bold self-center">Pilihan Cepat DIY:</span>
-                    <button type="button" onclick="setDistCoords(-7.7156, 110.3556, 'Sleman - Balai Benih & Pakan')" class="text-[11px] px-2.5 py-0.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg">📍 Sleman</button>
-                    <button type="button" onclick="setDistCoords(-7.8878, 110.3278, 'Bantul - Gapoktan Imogiri')" class="text-[11px] px-2.5 py-0.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg">📍 Bantul</button>
-                    <button type="button" onclick="setDistCoords(-7.9667, 110.6000, 'Gunungkidul - Wonosari')" class="text-[11px] px-2.5 py-0.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg">📍 Gunungkidul</button>
-                    <button type="button" onclick="setDistCoords(-7.8572, 110.1589, 'Kulon Progo - Wates')" class="text-[11px] px-2.5 py-0.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg">📍 Kulon Progo</button>
-                    <button type="button" onclick="setDistCoords(-7.7956, 110.3695, 'Kota Yogyakarta - Gondomanan')" class="text-[11px] px-2.5 py-0.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg">📍 Kota Yogya</button>
+                <!-- Opsi Input Berdasarkan Nama Lokasi (Geocoding Autocomplete / Search) -->
+                <div class="flex items-center space-x-1.5">
+                    <div class="relative flex-1">
+                        <input type="text" id="dist-location-search" placeholder="Ketik nama lokasi / desa / kecamatan (misal: Mataram, Praya, Gerung)..." 
+                               class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); searchLocationGeo(); }">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <button type="button" onclick="searchLocationGeo()" id="btn-search-loc" class="px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-xs transition-smooth shrink-0 flex items-center space-x-1">
+                        <span>Cari</span>
+                    </button>
+                </div>
+                <div id="dist-search-status" class="text-[11px] hidden"></div>
+
+                <!-- Pilihan Cepat Wilayah NTB -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span class="text-[10px] text-slate-400 font-bold self-center">Pilihan Cepat NTB:</span>
+                    <button type="button" onclick="setDistCoords(-8.5833, 116.1167, 'Kota Mataram')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Mataram</button>
+                    <button type="button" onclick="setDistCoords(-8.6833, 116.1333, 'Lombok Barat - Gerung')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Lombok Barat</button>
+                    <button type="button" onclick="setDistCoords(-8.7000, 116.2667, 'Lombok Tengah - Praya')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Lombok Tengah</button>
+                    <button type="button" onclick="setDistCoords(-8.6500, 116.5333, 'Lombok Timur - Selong')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Lombok Timur</button>
+                    <button type="button" onclick="setDistCoords(-8.3500, 116.1500, 'Lombok Utara - Tanjung')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Lombok Utara</button>
+                    <button type="button" onclick="setDistCoords(-8.7500, 116.8500, 'Sumbawa Barat - Taliwang')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Sumbawa Barat</button>
+                    <button type="button" onclick="setDistCoords(-8.5000, 117.4333, 'Kab. Sumbawa')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Sumbawa</button>
+                    <button type="button" onclick="setDistCoords(-8.5333, 118.4667, 'Kab. Dompu')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Dompu</button>
+                    <button type="button" onclick="setDistCoords(-8.4500, 118.7333, 'Kota Bima')" class="text-[10px] px-2.5 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg transition-colors">📍 Bima</button>
                 </div>
 
-                <div id="dist-picker-map" class="w-full h-[220px] rounded-2xl overflow-hidden border border-slate-300 shadow-inner z-10"></div>
+                <div id="dist-picker-map" class="w-full h-[230px] rounded-2xl overflow-hidden border border-slate-300 shadow-inner z-10"></div>
 
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
                         <label class="block text-[10px] font-mono text-slate-400">Latitude</label>
                         <input type="text" id="dist-lat" name="latitude" required readonly class="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700">
@@ -873,13 +894,17 @@ $metricsPRD = getMetrics($produkList);
                         <label class="block text-[10px] font-mono text-slate-400">Longitude</label>
                         <input type="text" id="dist-lng" name="longitude" required readonly class="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl text-slate-700">
                     </div>
+                    <div>
+                        <label class="block text-[10px] font-mono text-slate-400">Nama Wilayah / Lokasi</label>
+                        <input type="text" id="dist-location-name" name="location_name" placeholder="Nama wilayah..." class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold">
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Petugas Penyaluran</label>
-                    <input type="text" name="officer_name" value="<?= htmlspecialchars($_SESSION['admin_user'] ?? 'Petugas Lapangan BRMP DIY') ?>" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
+                    <input type="text" name="officer_name" value="<?= htmlspecialchars($_SESSION['admin_user'] ?? 'Petugas Lapangan iCare NTB') ?>" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Tambahan</label>
@@ -906,7 +931,7 @@ $metricsPRD = getMetrics($produkList);
                 ✓
             </div>
             <h3 class="text-base font-black text-slate-800">Distribusi Berhasil Dicatat & Diplot!</h3>
-            <p class="text-xs text-slate-500">Stok telah berkurang dan titik lokasi telah disematkan ke minimap sebaran BRMP DIY.</p>
+            <p class="text-xs text-slate-500">Stok telah berkurang dan titik lokasi telah disematkan ke peta sebaran distribusi iCare NTB.</p>
         </div>
 
         <div class="space-y-3 mt-3">
@@ -1187,7 +1212,7 @@ $metricsPRD = getMetrics($produkList);
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Petugas BRMP</label>
-                <input type="text" name="officer_name" value="<?= htmlspecialchars($_SESSION['admin_user'] ?? 'Petugas Gudang BRMP DIY') ?>" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
+                <input type="text" name="officer_name" value="<?= htmlspecialchars($_SESSION['admin_user'] ?? 'Petugas Gudang iCare NTB') ?>" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
             </div>
 
             <div>

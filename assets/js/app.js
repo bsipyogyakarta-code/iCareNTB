@@ -662,12 +662,12 @@ function initDistributionMinimap() {
     const mapContainer = document.getElementById('distribution-minimap');
     if (!mapContainer || typeof L === 'undefined') return;
 
-    // Titik pusat D.I. Yogyakarta (-7.801389, 110.364444)
-    const diyCenter = [-7.801389, 110.364444];
+    // Titik pusat Nusa Tenggara Barat (-8.65, 117.0)
+    const ntbCenter = [-8.65, 117.0];
 
     distributionMap = L.map('distribution-minimap', {
-        center: diyCenter,
-        zoom: 10,
+        center: ntbCenter,
+        zoom: 9,
         zoomControl: true,
         scrollWheelZoom: false
     });
@@ -855,7 +855,7 @@ function resetMinimapView() {
             return;
         }
     }
-    distributionMap.flyTo([-7.801389, 110.364444], 10);
+    distributionMap.flyTo([-8.65, 117.0], 9);
 }
 
 // Preset Wilayah DIY di Modal Mutasi
@@ -1159,8 +1159,8 @@ function initDistPickerMap() {
 
     if (!distPickerMap) {
         distPickerMap = L.map('dist-picker-map', {
-            center: [-7.801389, 110.364444],
-            zoom: 10,
+            center: [-8.65, 117.0],
+            zoom: 9,
             zoomControl: true,
             scrollWheelZoom: false
         });
@@ -1181,8 +1181,8 @@ function initDistPickerMap() {
             updatePickerMarker(lat, lng);
 
             const locNameInput = document.getElementById('dist-location-name');
-            if (locNameInput && (!locNameInput.value || locNameInput.value.startsWith('Koordinat:'))) {
-                locNameInput.value = `Titik Koordinat: ${lat}, ${lng}`;
+            if (locNameInput && (!locNameInput.value || locNameInput.value.startsWith('Titik:'))) {
+                locNameInput.value = `Titik: ${lat}, ${lng}`;
             }
         });
     }
@@ -1190,6 +1190,75 @@ function initDistPickerMap() {
     setTimeout(() => {
         if (distPickerMap) distPickerMap.invalidateSize();
     }, 200);
+}
+
+function setDistCoords(lat, lng, locName = '') {
+    const latInput = document.getElementById('dist-lat');
+    const lngInput = document.getElementById('dist-lng');
+    const locNameInput = document.getElementById('dist-location-name');
+    const recipientInput = document.getElementById('dist-recipient');
+
+    if (latInput) latInput.value = lat;
+    if (lngInput) lngInput.value = lng;
+    if (locNameInput && locName) locNameInput.value = locName;
+    if (recipientInput && (!recipientInput.value || recipientInput.value.trim() === '')) {
+        recipientInput.value = 'Kelompok Tani Wilayah ' + locName;
+    }
+
+    initDistPickerMap();
+    updatePickerMarker(lat, lng);
+    if (distPickerMap) {
+        distPickerMap.setView([lat, lng], 13);
+    }
+}
+
+async function searchLocationGeo() {
+    const query = document.getElementById('dist-location-search')?.value?.trim();
+    const statusEl = document.getElementById('dist-search-status');
+    const btn = document.getElementById('btn-search-loc');
+
+    if (!query) return;
+
+    if (statusEl) {
+        statusEl.className = 'text-[11px] text-amber-600 font-semibold block';
+        statusEl.textContent = `Sedang mencari titik lokasi "${query}"...`;
+    }
+    if (btn) btn.disabled = true;
+
+    try {
+        const endpoint = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id`;
+        const res = await fetch(endpoint, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await res.json();
+
+        if (data && data.length > 0) {
+            const result = data[0];
+            const lat = parseFloat(parseFloat(result.lat).toFixed(4));
+            const lng = parseFloat(parseFloat(result.lon).toFixed(4));
+            const displayName = result.display_name.split(',').slice(0, 3).join(', ');
+
+            setDistCoords(lat, lng, displayName);
+
+            if (statusEl) {
+                statusEl.className = 'text-[11px] text-emerald-600 font-semibold block';
+                statusEl.textContent = `✓ Ditemukan: ${displayName} (${lat}, ${lng})`;
+            }
+        } else {
+            if (statusEl) {
+                statusEl.className = 'text-[11px] text-rose-600 font-semibold block';
+                statusEl.textContent = `Lokasi "${query}" tidak ditemukan. Silakan klik langsung pada peta.`;
+            }
+        }
+    } catch (err) {
+        console.error('Geocoding error:', err);
+        if (statusEl) {
+            statusEl.className = 'text-[11px] text-rose-600 font-semibold block';
+            statusEl.textContent = 'Gagal mencari lokasi. Silakan klik langsung pada peta.';
+        }
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 function updatePickerMarker(lat, lng) {

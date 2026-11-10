@@ -207,7 +207,7 @@ try {
                 ':item_id' => $newItemId,
                 ':quantity' => $stockCurrent,
                 ':mutation_date' => date('Y-m-d'),
-                ':officer_name' => $_SESSION['admin_user'] ?? 'Petugas Gudang BRMP DIY',
+                ':officer_name' => $_SESSION['admin_user'] ?? 'Petugas Gudang iCare NTB',
                 ':dest' => 'Pencatatan Komoditas Baru',
                 ':notes' => "Penambahan awal {$name} sebanyak {$stockCurrent} {$unit}"
             ]);
@@ -287,7 +287,7 @@ try {
             $type = strtoupper(trim($_POST['type'] ?? ''));
             $quantity = (float)($_POST['quantity'] ?? $_POST['amount'] ?? 0);
             $date = trim($_POST['mutation_date'] ?? date('Y-m-d'));
-            $officer = trim($_POST['officer_name'] ?? 'Petugas BRMP DIY');
+            $officer = trim($_POST['officer_name'] ?? 'Petugas Lapangan iCare NTB');
             $destination = trim($_POST['destination_or_source'] ?? $_POST['recipient_location'] ?? '-');
             $notes = trim($_POST['notes'] ?? '');
 
@@ -503,7 +503,7 @@ try {
             $qty = abs($delta);
             $mut = $pdo->prepare("
                 INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes)
-                VALUES (:item_id, :type, :quantity, :mdate, 'Petugas BRMP DIY', :dest, :notes)
+                VALUES (:item_id, :type, :quantity, :mdate, 'Petugas Lapangan iCare NTB', :dest, :notes)
             ");
             $mut->execute([
                 ':item_id' => $itemId,
