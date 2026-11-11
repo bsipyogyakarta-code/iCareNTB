@@ -32,10 +32,12 @@ function doGet(e) {
   if (action === 'get_all') {
     var items = getItemsFromSheets(ss);
     var mutations = getMutationsFromSheets(ss);
+    var settings = getSettingsFromSheets(ss);
     return createJsonResponse({
       success: true,
       items: items,
-      mutations: mutations
+      mutations: mutations,
+      settings: settings
     });
   }
 
@@ -52,9 +54,11 @@ function doPost(e) {
     if (action === 'sync_all') {
       var items = data.items || [];
       var mutations = data.mutations || [];
+      var settings = data.settings || {};
 
       syncItemsSheet(ss, items);
       syncMutationsSheet(ss, mutations);
+      syncSettingsSheet(ss, settings);
 
       return createJsonResponse({
         success: true,
@@ -233,6 +237,45 @@ function getItemsFromSheets(ss) {
     }
   }
   return items;
+}
+
+function syncSettingsSheet(ss, settings) {
+  var setSheet = getOrCreateSheet(ss, 'Pengaturan_Sistem', '#059669');
+  var headers = ['Kunci Pengaturan (Key)', 'Nilai (Value)', 'Keterangan'];
+  var rows = [headers];
+
+  var defaultDescriptions = {
+    'whatsapp_number': 'Nomor WhatsApp resmi layanan & pemesanan publik (format: 08xxx atau 62xxx)'
+  };
+
+  for (var k in settings) {
+    if (settings.hasOwnProperty(k)) {
+      rows.push([
+        k,
+        String(settings[k] || ''),
+        defaultDescriptions[k] || 'Pengaturan Aplikasi iCare NTB'
+      ]);
+    }
+  }
+
+  writeAndFormatSheet(setSheet, rows);
+}
+
+function getSettingsFromSheets(ss) {
+  var setSheet = ss.getSheetByName('Pengaturan_Sistem');
+  if (!setSheet) return {};
+  var data = setSheet.getDataRange().getValues();
+  if (data.length <= 1) return {};
+
+  var settings = {};
+  for (var r = 1; r < data.length; r++) {
+    var k = data[r][0];
+    var v = data[r][1];
+    if (k) {
+      settings[k] = String(v || '');
+    }
+  }
+  return settings;
 }
 
 function getOrCreateSheet(ss, name, tabColor) {

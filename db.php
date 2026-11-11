@@ -83,6 +83,12 @@ try {
             FOREIGN KEY (product_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
             FOREIGN KEY (raw_material_id) REFERENCES inventory_items(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS app_settings (
+            setting_key TEXT PRIMARY KEY,
+            setting_value TEXT,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     ");
 
     // Check & Migrate columns in inventory_mutations
@@ -97,21 +103,48 @@ try {
         $pdo->exec("ALTER TABLE inventory_mutations ADD COLUMN location_name TEXT");
     }
 
+    // Helper setting functions
+    if (!function_exists('get_app_setting')) {
+        function get_app_setting(PDO $pdo, string $key, string $default = ''): string {
+            try {
+                $stmt = $pdo->prepare("SELECT setting_value FROM app_settings WHERE setting_key = :k LIMIT 1");
+                $stmt->execute([':k' => $key]);
+                $val = $stmt->fetchColumn();
+                return ($val !== false && $val !== null) ? (string)$val : $default;
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+    }
+
+    if (!function_exists('save_app_setting')) {
+        function save_app_setting(PDO $pdo, string $key, string $val): bool {
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO app_settings (setting_key, setting_value, updated_at) 
+                    VALUES (:k, :v, CURRENT_TIMESTAMP)
+                    ON CONFLICT(setting_key) DO UPDATE SET 
+                        setting_value = excluded.setting_value,
+                        updated_at = CURRENT_TIMESTAMP
+                ");
+                return $stmt->execute([':k' => $key, ':v' => $val]);
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+    }
+
     // Sinkronisasi cerdas dengan Google Spreadsheet pada setiap container
     try {
         $lastSyncFile = $dataDir . '/last_cloud_pull.txt';
         $itemCount = (int)$pdo->query("SELECT COUNT(*) FROM inventory_items")->fetchColumn();
         $mutCount = (int)$pdo->query("SELECT COUNT(*) FROM inventory_mutations")->fetchColumn();
 
-        // Kondisi tarik data:
-        // 1. Container baru belum pernah sync (!file_exists)
-        // 2. ATAU tabel item kosong ($itemCount === 0)
-        // 3. ATAU tabel mutasi kosong ($mutCount === 0)
-        // 4. ATAU sudah lewat 30 detik sejak pull terakhir
+        // Tarik data hanya saat awal inisialisasi kontainer atau jika database kosong
         $needsPull = !file_exists($lastSyncFile) 
                      || $itemCount === 0 
-                     || $mutCount === 0 
-                     || (time() - @filemtime($lastSyncFile) > 30);
+                     || ($mutCount === 0 && $itemCount > 0)
+                     || (time() - @filemtime($lastSyncFile) > 120);
 
         if ($needsPull) {
             require_once __DIR__ . '/google_sheets.php';

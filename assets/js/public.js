@@ -57,8 +57,19 @@ function openDetailModalPublic(item) {
 
     const waEl = document.getElementById('pub-detail-wa');
     if (waEl) {
-        // Dikosongkan dulu sesuai permintaan
-        waEl.textContent = '-';
+        const waNum = (typeof window.APP_WHATSAPP !== 'undefined' && window.APP_WHATSAPP) ? String(window.APP_WHATSAPP).trim() : '';
+        if (waNum) {
+            const cleanNum = waNum.replace(/^0/, '62').replace(/[^0-9]/g, '');
+            const msg = encodeURIComponent(`Halo Admin iCare NTB, saya ingin konsultasi atau memesan ${item.name || 'Pakan Jadi'} (${item.code || ''}).`);
+            waEl.innerHTML = `
+                <a href="https://wa.me/${cleanNum}?text=${msg}" target="_blank" class="inline-flex items-center space-x-2 text-emerald-700 hover:text-emerald-800 font-bold hover:underline transition-smooth">
+                    <span>${waNum}</span>
+                    <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Chat WA 💬</span>
+                </a>
+            `;
+        } else {
+            waEl.textContent = '- (Belum Disetel)';
+        }
     }
 
     const imgEl = document.getElementById('pub-detail-img');

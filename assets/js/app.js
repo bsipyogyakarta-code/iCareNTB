@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initDistributionMinimap();
     setupLocationPresets();
     setupDistributeLocationPresets();
+    initProduceFeature();
+    initWhatsAppFeature();
 });
 
 // Toast Notification
@@ -1669,5 +1671,157 @@ async function pullGsheetNow() {
         btn.disabled = false;
     }
 }
+
+// ========================================================
+// FITUR PRODUKSI & TAMBAH STOK PAKAN JADI (POTONG BAHAN BAKU)
+// ========================================================
+
+function openProduceModal() {
+    const form = document.getElementById('form-produce-product');
+    if (form) form.reset();
+    updateProduceTotalDeducted();
+    openModal('modal-produce-product');
+}
+
+function openProduceModalForProduct(item) {
+    if (!item) return;
+    openProduceModal();
+    const sel = document.getElementById('produce-product-id');
+    if (sel) {
+        sel.value = item.id;
+    }
+}
+
+function updateProduceTotalDeducted() {
+    let total = 0;
+    document.querySelectorAll('.produce-deduct-input').forEach(input => {
+        const val = parseFloat(input.value) || 0;
+        total += val;
+    });
+    const totalEl = document.getElementById('produce-total-deducted');
+    if (totalEl) {
+        totalEl.textContent = `${total.toLocaleString('id-ID')} kg`;
+    }
+}
+
+function initProduceFeature() {
+    // Listener kalkulator pemotongan bahan baku realtime
+    document.querySelectorAll('.produce-deduct-input').forEach(input => {
+        input.addEventListener('input', () => {
+            const max = parseFloat(input.getAttribute('data-max')) || 0;
+            const val = parseFloat(input.value) || 0;
+            if (val > max) {
+                input.classList.add('border-rose-500', 'text-rose-600');
+                showToast(`Jumlah bahan melebihi stok yang tersedia (${max} kg)!`, 'error');
+            } else {
+                input.classList.remove('border-rose-500', 'text-rose-600');
+            }
+            updateProduceTotalDeducted();
+        });
+    });
+
+    const form = document.getElementById('form-produce-product');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('btn-submit-produce');
+            let origHtml = '';
+            if (submitBtn) {
+                origHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                submitBtn.innerHTML = '<span class="inline-block animate-spin mr-1.5">⏳</span> Menyimpan & Memotong Bahan...';
+            }
+
+            const resetBtn = () => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    submitBtn.innerHTML = origHtml;
+                }
+            };
+
+            const formData = new FormData(form);
+            formData.append('action', 'produce_product');
+
+            try {
+                const res = await fetch('api.php', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(data.message || 'Produksi berhasil disimpan!');
+                    closeModal('modal-produce-product');
+                    form.reset();
+
+                    // Update live stock di card produk jika ada
+                    if (data.product_id) {
+                        const cardStock = document.getElementById(`card-stock-${data.product_id}`);
+                        if (cardStock) {
+                            cardStock.textContent = `${Number(data.new_stock).toLocaleString('id-ID')} kg`;
+                        }
+                    }
+
+                    // Reload halaman agar seluruh tabel stok bahan baku dan log mutasi terbarui
+                    setTimeout(() => window.location.reload(), 900);
+                } else {
+                    showToast(data.message || 'Gagal memproses produksi.', 'error');
+                    resetBtn();
+                }
+            } catch (err) {
+                showToast('Gagal menghubungi server.', 'error');
+                resetBtn();
+            }
+        });
+    }
+}
+
+// ========================================================
+// FITUR PENGATURAN WHATSAPP LAYANAN PUBLIK
+// ========================================================
+
+function initWhatsAppFeature() {
+    const form = document.getElementById('form-whatsapp');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('btn-submit-wa');
+            let origHtml = '';
+            if (submitBtn) {
+                origHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>⏳ Menyimpan...</span>';
+            }
+
+            const formData = new FormData(form);
+            formData.append('action', 'save_whatsapp');
+
+            try {
+                const res = await fetch('api.php', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(data.message || 'Nomor WhatsApp berhasil disimpan!');
+                    closeModal('modal-whatsapp');
+                    const display = document.getElementById('header-wa-display');
+                    if (display) {
+                        display.textContent = data.whatsapp_number || 'Set WA';
+                    }
+                } else {
+                    showToast(data.message || 'Gagal menyimpan nomor WhatsApp.', 'error');
+                }
+            } catch (err) {
+                showToast('Gagal menghubungi server.', 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origHtml;
+                }
+            }
+        });
+    }
+}
+
 
 

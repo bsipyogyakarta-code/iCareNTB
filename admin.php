@@ -9,6 +9,7 @@ require_admin_login();
 
 $gsheetUrl = get_gsheet_url();
 $isGsheetConnected = !empty($gsheetUrl);
+$currentWhatsApp = get_app_setting($pdo, 'whatsapp_number', '');
 
 // Fetch items for each feature
 $bahanBakuList = $pdo->query("SELECT * FROM inventory_items WHERE type = 'bahan_baku' ORDER BY id ASC")->fetchAll();
@@ -92,65 +93,81 @@ $metricsPRD = getMetrics($produkList);
     <!-- Top Admin Header -->
     <header class="bg-gradient-to-r from-[#064e3b] via-[#047857] to-[#065f46] text-white shadow-xl sticky top-0 z-40 border-b border-emerald-600/30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 sm:py-0 sm:h-20">
                 <!-- Branding -->
-                <div class="flex items-center space-x-3.5">
-                    <a href="admin.php" class="relative group block shrink-0" title="Panel Administrator iCare NTB">
-                        <div class="w-13 h-13 p-1 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/25 shadow-lg backdrop-blur-md transition-smooth flex items-center justify-center">
-                            <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-11 h-11 object-contain drop-shadow-md transform group-hover:scale-105 transition-smooth">
+                <div class="flex items-center justify-between w-full sm:w-auto">
+                    <div class="flex items-center space-x-3">
+                        <a href="admin.php" class="relative group block shrink-0" title="Panel Administrator iCare NTB">
+                            <div class="w-11 h-11 sm:w-12 sm:h-12 p-1 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/25 shadow-lg backdrop-blur-md transition-smooth flex items-center justify-center">
+                                <img src="assets/img/logo-brmp.png" alt="Logo Resmi iCare NTB" class="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow-md transform group-hover:scale-105 transition-smooth">
+                            </div>
+                        </a>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight text-white uppercase drop-shadow-sm">Panel Admin</h1>
+                                <span class="bg-amber-400 text-slate-900 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-black tracking-wider uppercase shadow-xs">iCare NTB</span>
+                            </div>
+                            <p class="text-[11px] sm:text-xs text-emerald-100/90 font-medium flex items-center space-x-1.5 mt-0.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse inline-block"></span>
+                                <span>Manajemen CRUD & Monitoring Penuh</span>
+                            </p>
                         </div>
-                    </a>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white uppercase drop-shadow-sm">Panel Admin</h1>
-                            <span class="bg-amber-400 text-slate-900 text-xs px-2.5 py-0.5 rounded-full font-black tracking-wider uppercase shadow-xs">iCare NTB</span>
-                        </div>
-                        <p class="text-xs text-emerald-100/90 font-medium flex items-center space-x-1.5 mt-0.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse inline-block"></span>
-                            <span>Manajemen CRUD & Monitoring Penuh Sistem</span>
-                        </p>
+                    </div>
+
+                    <!-- Mobile Shortcut Links -->
+                    <div class="flex sm:hidden items-center space-x-1.5">
+                        <a href="index.php" target="_blank" class="p-2 text-white bg-white/10 hover:bg-white/20 rounded-xl transition-smooth" title="Buka Katalog Publik">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                        <a href="login.php?action=logout" class="p-2 text-rose-200 hover:text-white bg-rose-600/30 rounded-xl transition-smooth" title="Keluar">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Admin Action Buttons -->
-                <div class="flex items-center space-x-2 sm:space-x-2.5">
+                <!-- Admin Action Buttons (Responsive Mobile & Desktop) -->
+                <div class="flex items-center flex-wrap gap-2 w-full sm:w-auto">
+                    <!-- WhatsApp Admin Setting Button -->
+                    <button type="button" onclick="openModal('modal-whatsapp')" class="inline-flex items-center space-x-1.5 px-3 py-2 text-xs sm:text-sm font-bold text-emerald-950 bg-emerald-300 hover:bg-emerald-200 rounded-full shadow-md transition-smooth cursor-pointer" title="Kelola Nomor WhatsApp Publik">
+                        <span>📱</span>
+                        <span>WA: <span id="header-wa-display"><?= $currentWhatsApp ? htmlspecialchars($currentWhatsApp) : 'Set WA' ?></span></span>
+                    </button>
+
                     <!-- Google Sheets Sync Button -->
                     <button onclick="openModal('modal-gsheet')" class="inline-flex items-center space-x-1.5 px-3 py-2 text-xs sm:text-sm font-bold <?= $isGsheetConnected ? 'text-emerald-950 bg-amber-300 hover:bg-amber-400' : 'text-emerald-100 bg-white/10 hover:bg-white/20 border border-white/20' ?> rounded-full shadow-md transition-smooth" title="Integrasi Google Spreadsheet">
                         <svg class="w-4 h-4 <?= $isGsheetConnected ? 'text-emerald-950' : 'text-emerald-200' ?>" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"/>
                         </svg>
-                        <span class="hidden sm:inline">Google Sheets</span>
-                        <span class="sm:hidden">Sheets</span>
+                        <span>Sheets</span>
                         <?php if ($isGsheetConnected): ?>
                         <span class="w-2 h-2 rounded-full bg-emerald-700 animate-ping inline-block"></span>
                         <?php endif; ?>
                     </button>
 
                     <!-- Catat Mutasi Manual -->
-                    <button onclick="openModal('modal-mutation')" class="inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-emerald-900 bg-white hover:bg-emerald-50 rounded-full shadow-md transition-smooth">
+                    <button onclick="openModal('modal-mutation')" class="inline-flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-bold text-emerald-900 bg-white hover:bg-emerald-50 rounded-full shadow-md transition-smooth">
                         <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                         </svg>
-                        <span class="hidden sm:inline">Catat Mutasi</span>
-                        <span class="sm:hidden">Mutasi</span>
+                        <span>Mutasi</span>
                     </button>
 
                     <!-- Tambah Data Baru (CRUD) -->
-                    <button onclick="openAddModalWithType('produk')" class="inline-flex items-center space-x-1.5 px-4 py-2 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-full shadow-md transition-smooth border border-emerald-400/30">
+                    <button onclick="openAddModalWithType('produk')" class="inline-flex items-center space-x-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-full shadow-md transition-smooth border border-emerald-400/30">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        <span>+ Tambah Data</span>
+                        <span>+ Tambah</span>
                     </button>
 
-                    <!-- Lihat Web Publik -->
-                    <a href="index.php" target="_blank" class="inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/20 transition-smooth" title="Buka Halaman Publik (Pakan Jadi)">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                        <span class="hidden md:inline">Web Publik</span>
+                    <!-- Lihat Web Publik (Desktop) -->
+                    <a href="index.php" target="_blank" class="hidden sm:inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-emerald-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/20 transition-smooth" title="Buka Halaman Publik (Pakan Jadi)">
+                        <svg class="w-4 h-4 fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <span>Web Publik</span>
                     </a>
 
-                    <!-- Logout Button -->
-                    <a href="login.php?action=logout" class="p-2 text-rose-200 hover:text-white hover:bg-rose-600/30 rounded-full transition-smooth" title="Keluar dari Panel Admin">
+                    <!-- Logout Button (Desktop) -->
+                    <a href="login.php?action=logout" class="hidden sm:inline-flex p-2 text-rose-200 hover:text-white hover:bg-rose-600/30 rounded-full transition-smooth" title="Keluar dari Panel Admin">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
@@ -213,8 +230,8 @@ $metricsPRD = getMetrics($produkList);
         <!-- ============================================== -->
         <!-- NAVIGASI TAB KELOLA ADMIN (MENU LENGKAP) -->
         <!-- ============================================== -->
-        <nav class="bg-white/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/80 shadow-[0_2px_15px_rgba(0,0,0,0.04)] flex flex-wrap items-center justify-between gap-1.5 no-print" aria-label="Menu Admin">
-            <div class="flex flex-wrap items-center gap-1.5">
+        <nav class="bg-white/90 backdrop-blur-md p-1.5 rounded-2xl sm:rounded-full border border-slate-200/80 shadow-[0_2px_15px_rgba(0,0,0,0.04)] flex flex-nowrap sm:flex-wrap items-center justify-between gap-1.5 overflow-x-auto no-print scrollbar-none" aria-label="Menu Admin">
+            <div class="flex items-center gap-1.5 shrink-0 sm:shrink">
                 <!-- Tab 1: Pakan Jadi (Produk) - Default Active -->
                 <button data-target="tab-produk" class="feature-tab-btn px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm bg-[#059669] text-white shadow-md flex items-center space-x-2 transition-smooth">
                     <span>📦 1. Pakan Jadi (Produk)</span>
@@ -261,8 +278,11 @@ $metricsPRD = getMetrics($produkList);
                         </svg>
                         <span>Segarkan Data</span>
                     </button>
-                    <button onclick="openAddModalWithType('produk')" class="inline-flex items-center space-x-1.5 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-xs transition-smooth">
-                        <span>+ Tambah Pakan Jadi</span>
+                    <button onclick="openProduceModal()" class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm shadow-xs transition-smooth" title="Tambah stok pakan jadi yang sudah ada & potong bahan baku otomatis">
+                        <span>⚙️ Produksi Pakan Jadi</span>
+                    </button>
+                    <button onclick="openAddModalWithType('produk')" class="inline-flex items-center space-x-1.5 px-4 sm:px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-xs transition-smooth">
+                        <span>+ Varian Baru</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
@@ -334,17 +354,7 @@ $metricsPRD = getMetrics($produkList);
                             <?= htmlspecialchars($item['name']) ?>
                         </h3>
 
-                        <!-- Spesifikasi Nutrisi Ringkas -->
-                        <div class="mt-2 py-1.5 px-2.5 bg-slate-50/80 rounded-xl border border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
-                            <div>
-                                <span class="text-slate-400 block text-[9px] uppercase font-bold tracking-wider"><?= htmlspecialchars($item['spec_1_label'] ?: 'Protein') ?></span>
-                                <span class="font-black text-slate-800"><?= htmlspecialchars($item['spec_1_value'] ?: '-') ?></span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-slate-400 block text-[9px] uppercase font-bold tracking-wider"><?= htmlspecialchars($item['spec_2_label'] ?: 'Kadar Air') ?></span>
-                                <span class="font-black text-slate-800"><?= htmlspecialchars($item['spec_2_value'] ?: '-') ?></span>
-                            </div>
-                        </div>
+
 
                         <!-- Stock Card Container with Integrated Stepper -->
                         <div class="bg-slate-50/80 rounded-2xl p-2.5 border border-slate-100 flex items-center justify-between mt-2.5">
@@ -365,20 +375,22 @@ $metricsPRD = getMetrics($produkList);
                     <!-- Action Buttons Section -->
                     <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
                         <div class="grid grid-cols-2 gap-2">
-                            <button type="button" onclick='openDistributeModal(<?= json_encode($item) ?>)' class="inline-flex items-center justify-center space-x-1.5 py-2 px-3 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-smooth" title="Salurkan Produk">
-                                <span>📦 Salurkan</span>
+                            <button type="button" onclick='openProduceModalForProduct(<?= json_encode($item) ?>)' class="inline-flex items-center justify-center space-x-1.5 py-2 px-2.5 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-500 rounded-xl shadow-xs transition-smooth" title="Tambah Stok & Potong Bahan Baku">
+                                <span>⚙️ Produksi</span>
                             </button>
-                            <button type="button" onclick='openProductMapModal(<?= json_encode($item) ?>)' class="inline-flex items-center justify-center space-x-1.5 py-2 px-2.5 text-xs font-bold text-slate-700 hover:text-emerald-800 bg-slate-50 hover:bg-emerald-50 rounded-xl border border-slate-200 hover:border-emerald-300 transition-smooth" title="Lihat Peta Distribusi">
-                                <span>📍 Peta Sebaran</span>
+                            <button type="button" onclick='openDistributeModal(<?= json_encode($item) ?>)' class="inline-flex items-center justify-center space-x-1.5 py-2 px-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-smooth" title="Salurkan Produk">
+                                <span>📦 Salurkan</span>
                             </button>
                         </div>
 
-                        <button type="button" onclick='openDetailModal(<?= json_encode($item) ?>)' class="w-full inline-flex items-center justify-center space-x-1 text-xs font-bold text-slate-500 hover:text-emerald-700 py-1 transition-smooth cursor-pointer group/link">
-                            <span>Detail Spesifikasi & Mutu</span>
-                            <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover/link:translate-x-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick='openProductMapModal(<?= json_encode($item) ?>)' class="inline-flex items-center justify-center space-x-1 py-1.5 px-2 text-[11px] font-bold text-slate-600 hover:text-emerald-800 bg-slate-50 hover:bg-emerald-50 rounded-xl border border-slate-200 hover:border-emerald-300 transition-smooth" title="Lihat Peta Distribusi">
+                                <span>📍 Peta Sebaran</span>
+                            </button>
+                            <button type="button" onclick='openDetailModal(<?= json_encode($item) ?>)' class="inline-flex items-center justify-center space-x-1 py-1.5 px-2 text-[11px] font-bold text-slate-500 hover:text-emerald-700 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-smooth cursor-pointer" title="Lihat Informasi Lengkap">
+                                <span>Info Detail</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -635,7 +647,7 @@ $metricsPRD = getMetrics($produkList);
     <!-- ======================================================== -->
 
     <!-- Modal 1: Detail Spesifikasi Item -->
-    <dialog id="modal-detail-item" class="w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl">
+    <dialog id="modal-detail-item" class="w-[95%] sm:w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
                 <span id="detail-code" class="text-xs font-mono font-bold text-emerald-600">CODE</span>
@@ -674,29 +686,8 @@ $metricsPRD = getMetrics($produkList);
                 </div>
             </div>
 
-            <!-- Parameter Mutu / Spesifikasi Laboratorium -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2.5">Parameter Mutu & Standar Uji BRMP</h4>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between py-1 border-b border-slate-200/60">
-                        <span id="detail-spec1-label" class="text-slate-600 font-medium">Spesifikasi 1</span>
-                        <span id="detail-spec1-val" class="font-bold text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1 border-b border-slate-200/60">
-                        <span id="detail-spec2-label" class="text-slate-600 font-medium">Spesifikasi 2</span>
-                        <span id="detail-spec2-val" class="font-bold text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1">
-                        <span id="detail-spec3-label" class="text-slate-600 font-medium">Spesifikasi 3</span>
-                        <span id="detail-spec3-val" class="font-bold text-slate-800">-</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="text-xs text-slate-500 space-y-1">
-                <div>Lokasi Gudang: <span id="detail-location" class="font-semibold text-slate-700">Gudang Utama</span></div>
-                <div>Standar Harga: <span id="detail-price" class="font-semibold text-slate-700">Rp 0</span></div>
-                <div class="pt-1 text-[11px] text-slate-400" id="detail-desc">Deskripsi singkat</div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500" id="detail-desc">Deskripsi singkat komoditas pakan</div>
             </div>
 
             <!-- Footer Modal Detail -->
@@ -723,7 +714,7 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 2: Peta Sebaran Khusus Produk -->
-    <dialog id="modal-product-map" class="w-full max-w-4xl bg-white p-6 rounded-3xl shadow-2xl">
+    <dialog id="modal-product-map" class="w-[95%] sm:w-full max-w-4xl bg-white p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div class="flex items-center space-x-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-emerald-50 p-1 border border-emerald-100 flex items-center justify-center overflow-hidden shrink-0">
@@ -792,7 +783,7 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 3: Catat Distribusi & Tentukan Lokasi Peta -->
-    <dialog id="modal-distribute" class="w-full max-w-2xl bg-white p-6 rounded-3xl shadow-2xl">
+    <dialog id="modal-distribute" class="w-[95%] sm:w-full max-w-2xl bg-white p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div class="flex items-center space-x-3">
                 <div class="p-2.5 bg-emerald-100 text-emerald-700 rounded-2xl">
@@ -925,7 +916,7 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 4: Hasil Konfirmasi Plot Minimap -->
-    <dialog id="modal-distribution-result" class="w-full max-w-lg bg-white p-6 rounded-3xl shadow-2xl">
+    <dialog id="modal-distribution-result" class="w-[95%] sm:w-full max-w-lg bg-white p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <div class="text-center pb-2">
             <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-2 text-xl font-bold">
                 ✓
@@ -950,7 +941,7 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 5: Tambah Komoditas Baru (Super Simpel & Multi-Slide untuk Pakan Jadi) -->
-    <dialog id="modal-add-item" class="w-full max-w-lg bg-white p-6 sm:p-7 rounded-3xl shadow-2xl">
+    <dialog id="modal-add-item" class="w-[95%] sm:w-full max-w-lg bg-white p-6 sm:p-7 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div class="flex items-center space-x-3">
@@ -1098,7 +1089,7 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 6: Edit Item (CRUD Sederhana: Nama, Berat, Foto) -->
-    <dialog id="modal-edit-item" class="w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl">
+    <dialog id="modal-edit-item" class="w-[95%] sm:w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div class="flex items-center space-x-2.5">
                 <span class="text-xl">✏️</span>
@@ -1164,7 +1155,7 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 9: Catat Mutasi Manual (Masuk / Keluar) -->
-    <dialog id="modal-mutation" class="w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl">
+    <dialog id="modal-mutation" class="w-[95%] sm:w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 class="text-lg font-black text-slate-800">Catat Mutasi Stok Manual</h3>
             <button onclick="closeModal('modal-mutation')" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
@@ -1237,7 +1228,160 @@ $metricsPRD = getMetrics($produkList);
     </dialog>
 
     <!-- Modal 10: Integrasi Google Spreadsheet & Vercel Sync -->
-    <dialog id="modal-gsheet" class="w-full max-w-xl bg-white p-6 rounded-3xl shadow-2xl backdrop:bg-slate-900/60">
+    <!-- ============================================== -->
+    <!-- MODAL PRODUKSI & TAMBAH STOK PAKAN JADI -->
+    <!-- (Include Memotong Bahan Baku Otomatis) -->
+    <!-- ============================================== -->
+    <dialog id="modal-produce-product" class="w-[95%] sm:w-full max-w-xl bg-white p-4 sm:p-6 rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto m-auto backdrop:bg-slate-900/60">
+        <div class="space-y-4">
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-lg shrink-0 border border-amber-200/50">
+                        ⚙️
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Produksi & Tambah Stok Pakan Jadi</h3>
+                        <p class="text-xs text-slate-500">Tambah stok pakan jadi dengan memotong bahan baku secara otomatis.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-produce-product')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-smooth">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="form-produce-product" class="space-y-4">
+                <!-- Target Produk Pakan Jadi -->
+                <div>
+                    <label for="produce-product-id" class="block text-xs font-bold text-slate-700 mb-1.5">Pilih Pakan Jadi yang Diproduksi *</label>
+                    <select id="produce-product-id" name="product_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white">
+                        <option value="">-- Pilih Produk Pakan --</option>
+                        <?php foreach ($produkList as $prd): ?>
+                        <option value="<?= $prd['id'] ?>" data-name="<?= htmlspecialchars($prd['name']) ?>" data-stock="<?= $prd['stock_current'] ?>" data-unit="<?= htmlspecialchars($prd['unit']) ?>">
+                            <?= htmlspecialchars($prd['name']) ?> (Stok saat ini: <?= number_format($prd['stock_current'], 0, ',', '.') ?> <?= htmlspecialchars($prd['unit']) ?>)
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Jumlah Produksi -->
+                <div>
+                    <label for="produce-quantity" class="block text-xs font-bold text-slate-700 mb-1.5">Jumlah Tambahan Hasil Produksi (kg) *</label>
+                    <div class="relative">
+                        <input type="number" id="produce-quantity" name="produce_quantity" min="0.1" step="any" required placeholder="Contoh: 100" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 pr-12">
+                        <span class="absolute right-3.5 top-2.5 text-xs font-bold text-slate-400">kg</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Stok produk yang dipilih akan bertambah sejumlah nilai ini.</p>
+                </div>
+
+                <!-- Bagian Pemotongan Bahan Baku -->
+                <div class="p-3.5 sm:p-4 bg-amber-50/60 rounded-2xl border border-amber-200/70 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center space-x-1.5">
+                                <span>🌾 Potong Bahan Baku Otomatis</span>
+                            </h4>
+                            <p class="text-[11px] text-amber-800/80 mt-0.5">Tentukan bahan baku yang terpakai untuk batch produksi ini:</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <?php foreach ($bahanBakuList as $idx => $bb): ?>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-white rounded-xl border border-amber-100 shadow-2xs">
+                            <div class="flex items-center space-x-2.5 min-w-0">
+                                <input type="hidden" name="deduct_material_id[]" value="<?= $bb['id'] ?>">
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-bold shrink-0">
+                                    🌾
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-xs font-bold text-slate-800 block truncate"><?= htmlspecialchars($bb['name']) ?></span>
+                                    <span class="text-[10px] text-slate-400">Sisa Gudang: <strong class="text-emerald-700 font-bold" id="bb-stock-avail-<?= $bb['id'] ?>"><?= number_format($bb['stock_current'], 0, ',', '.') ?></strong> <?= htmlspecialchars($bb['unit']) ?></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1.5 self-end sm:self-center shrink-0">
+                                <span class="text-[11px] text-slate-500 font-medium">Pakai:</span>
+                                <div class="relative w-24">
+                                    <input type="number" name="deduct_quantity[]" min="0" max="<?= (float)$bb['stock_current'] ?>" step="any" placeholder="0" value="0" class="produce-deduct-input w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-right focus:ring-2 focus:ring-amber-500 focus:border-amber-500" data-id="<?= $bb['id'] ?>" data-max="<?= (float)$bb['stock_current'] ?>">
+                                </div>
+                                <span class="text-xs font-bold text-slate-500"><?= htmlspecialchars($bb['unit']) ?></span>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Total Kalkulator -->
+                    <div class="p-2.5 bg-white/90 rounded-xl border border-amber-200/50 flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-600">Total Bahan Baku Terpakai:</span>
+                        <span id="produce-total-deducted" class="font-black text-amber-800">0 kg</span>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-produce-product')" class="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-smooth">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit-produce" class="px-5 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition-smooth flex items-center space-x-1.5 cursor-pointer">
+                        <span>⚙️ Simpan & Potong Bahan Baku</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- ============================================== -->
+    <!-- MODAL PENGATURAN WHATSAPP LAYANAN PUBLIK -->
+    <!-- ============================================== -->
+    <dialog id="modal-whatsapp" class="w-[95%] sm:w-full max-w-md bg-white p-4 sm:p-6 rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto m-auto backdrop:bg-slate-900/60">
+        <div class="space-y-4">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg shrink-0 border border-emerald-100">
+                        📱
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Ubah Nomor WhatsApp</h3>
+                        <p class="text-xs text-slate-500">Nomor ini tampil di katalog publik untuk pemesanan & konsultasi.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-whatsapp')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-smooth">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form id="form-whatsapp" class="space-y-4">
+                <div>
+                    <label for="wa-input" class="block text-xs font-bold text-slate-700 mb-1.5">Nomor WhatsApp Resmi Layanan *</label>
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-2.5 text-xs font-bold text-slate-400">ID (+62)</span>
+                        <input type="text" id="wa-input" name="whatsapp_number" value="<?= htmlspecialchars($currentWhatsApp) ?>" placeholder="Contoh: 081234567890" class="w-full pl-20 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">Dapat ditulis dengan format <code>08...</code> atau <code>628...</code>. Kosongkan jika belum ingin menampilkan nomor kontak.</p>
+                </div>
+
+                <div class="p-3 bg-emerald-50/70 rounded-2xl border border-emerald-100 text-xs text-emerald-800 space-y-1">
+                    <div class="font-bold flex items-center space-x-1.5">
+                        <span>💡 Sinkronisasi Otomatis</span>
+                    </div>
+                    <p class="text-[11px] leading-relaxed">
+                        Setiap perubahan nomor akan langsung terhubung ke Google Spreadsheet dan tombol pesan langsung WhatsApp di halaman publik peternak.
+                    </p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-whatsapp')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-smooth">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit-wa" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition-smooth cursor-pointer">
+                        Simpan Nomor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="modal-gsheet" class="w-[95%] sm:w-full max-w-xl bg-white p-6 rounded-3xl shadow-2xl backdrop:bg-slate-900/60 max-h-[92vh] overflow-y-auto m-auto">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div class="flex items-center space-x-2.5">
                 <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">

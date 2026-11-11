@@ -10,7 +10,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 // Proteksi hak akses CRUD khusus admin
 $mutationActions = [
     'add_item', 'update_item', 'delete_item', 'quick_adjust', 'quick_stock_adjust',
-    'add_mutation', 'distribute_item', 'save_gsheet_url', 'sync_gsheet', 'pull_gsheet'
+    'add_mutation', 'distribute_item', 'produce_product', 'save_whatsapp', 'save_gsheet_url', 'sync_gsheet', 'pull_gsheet'
 ];
 
 if (in_array($action, $mutationActions, true)) {
@@ -271,18 +271,14 @@ try {
                     $msg .= " " . $deductedCount . " bahan baku berhasil dipotong: " . implode(', ', $deductedDetails);
                 }
 
+                // Auto-sync langsung ke Google Spreadsheet sebelum respon dikirim
+                @sync_all_to_google_sheet($pdo);
+
                 echo json_encode([
                     'success' => true,
                     'message' => $msg,
                     'item_id' => $newItemId
                 ]);
-
-                if (function_exists('fastcgi_finish_request')) {
-                    fastcgi_finish_request();
-                }
-
-                // Auto-sync ke Google Spreadsheet
-                @sync_all_to_google_sheet($pdo);
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -422,14 +418,12 @@ try {
                     'quantity' => $quantity,
                     'destination' => $destination,
                     'mutation_date' => $date
-                ]);
+                ];
 
-                if (function_exists('fastcgi_finish_request')) {
-                    fastcgi_finish_request();
-                }
-
-                // Auto-sync ke Google Spreadsheet
+                // Auto-sync langsung ke Google Spreadsheet sebelum respon dikirim
                 @sync_all_to_google_sheet($pdo);
+
+                echo json_encode($resData);
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -447,15 +441,11 @@ try {
             }
             $del = $pdo->prepare("DELETE FROM inventory_items WHERE id = :id");
             $del->execute([':id' => $id]);
-            echo json_encode(['success' => true, 'message' => 'Item berhasil dihapus dari sistem!']);
 
-            if (function_exists('fastcgi_finish_request')) {
-                fastcgi_finish_request();
-            }
-
-            // Auto-sync ke Google Spreadsheet
+            // Auto-sync langsung ke Google Spreadsheet sebelum respon dikirim
             @sync_all_to_google_sheet($pdo);
 
+            echo json_encode(['success' => true, 'message' => 'Item berhasil dihapus dari sistem!']);
             break;
 
         case 'update_item':
@@ -527,15 +517,10 @@ try {
                 ':image_url' => $imageUrl
             ]);
 
-            echo json_encode(['success' => true, 'message' => "Data '{$name}' berhasil diperbarui!"]);
-
-            if (function_exists('fastcgi_finish_request')) {
-                fastcgi_finish_request();
-            }
-
-            // Auto-sync ke Google Spreadsheet
+            // Auto-sync langsung ke Google Spreadsheet sebelum respon dikirim
             @sync_all_to_google_sheet($pdo);
 
+            echo json_encode(['success' => true, 'message' => "Data '{$name}' berhasil diperbarui!"]);
             break;
 
         case 'quick_stock_adjust':
@@ -585,18 +570,15 @@ try {
                 ]);
 
                 $pdo->commit();
+
+                // Auto-sync langsung ke Google Spreadsheet sebelum respon dikirim
+                @sync_all_to_google_sheet($pdo);
+
                 echo json_encode([
                     'success' => true,
                     'message' => "Stok {$it['name']} berhasil disesuaikan! Stok baru: " . number_format($newStock, 0, ',', '.') . " {$it['unit']}",
                     'new_stock' => $newStock
                 ]);
-
-                if (function_exists('fastcgi_finish_request')) {
-                    fastcgi_finish_request();
-                }
-
-                // Auto-sync ke Google Spreadsheet
-                @sync_all_to_google_sheet($pdo);
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -623,6 +605,137 @@ try {
                 'success' => true,
                 'is_connected' => !empty($url),
                 'url' => $url
+            ]);
+            break;
+
+        case 'produce_product':
+            $productId = (int)($_POST['product_id'] ?? 0);
+            $rawProduceQty = str_replace(',', '.', trim((string)($_POST['produce_quantity'] ?? 0)));
+            $produceQty = max(0.0, (float)$rawProduceQty);
+
+            if ($productId <= 0 || $produceQty <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Pilih produk pakan dan masukkan jumlah produksi yang valid!']);
+                exit;
+            }
+
+            $prodStmt = $pdo->prepare("SELECT * FROM inventory_items WHERE id = :id AND type = 'produk'");
+            $prodStmt->execute([':id' => $productId]);
+            $product = $prodStmt->fetch();
+            if (!$product) {
+                echo json_encode(['success' => false, 'message' => 'Produk pakan jadi tidak ditemukan!']);
+                exit;
+            }
+
+            $materials = $_POST['deduct_material_id'] ?? [];
+            $quantities = $_POST['deduct_quantity'] ?? [];
+
+            $deductions = [];
+            foreach ($materials as $idx => $matId) {
+                $mId = (int)$matId;
+                $mQty = max(0.0, (float)str_replace(',', '.', $quantities[$idx] ?? 0));
+                if ($mId > 0 && $mQty > 0) {
+                    $deductions[] = ['id' => $mId, 'quantity' => $mQty];
+                }
+            }
+
+            try {
+                $pdo->beginTransaction();
+
+                $chkStmt = $pdo->prepare("SELECT id, name, unit, stock_current FROM inventory_items WHERE id = :id AND type = 'bahan_baku'");
+                $deductedDetails = [];
+
+                foreach ($deductions as $deduct) {
+                    $chkStmt->execute([':id' => $deduct['id']]);
+                    $bb = $chkStmt->fetch();
+                    if (!$bb) {
+                        throw new Exception("Bahan baku ID {$deduct['id']} tidak ditemukan.");
+                    }
+                    if ($bb['stock_current'] < $deduct['quantity']) {
+                        throw new Exception("Stok '{$bb['name']}' tidak cukup! Dibutuhkan: {$deduct['quantity']} {$bb['unit']}, Sisa di gudang: {$bb['stock_current']} {$bb['unit']}.");
+                    }
+                }
+
+                $updBB = $pdo->prepare("UPDATE inventory_items SET stock_current = stock_current - :qty, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+                $insBBMut = $pdo->prepare("
+                    INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes)
+                    VALUES (:item_id, 'OUT', :quantity, :mdate, :officer, :dest, :notes)
+                ");
+
+                $officer = $_SESSION['admin_user'] ?? 'Petugas Produksi iCare NTB';
+                $today = date('Y-m-d');
+
+                foreach ($deductions as $deduct) {
+                    $chkStmt->execute([':id' => $deduct['id']]);
+                    $bb = $chkStmt->fetch();
+
+                    $updBB->execute([':qty' => $deduct['quantity'], ':id' => $deduct['id']]);
+                    $insBBMut->execute([
+                        ':item_id' => $deduct['id'],
+                        ':quantity' => $deduct['quantity'],
+                        ':mdate' => $today,
+                        ':officer' => $officer,
+                        ':dest' => "Produksi {$product['name']}",
+                        ':notes' => "Pemotongan bahan baku untuk produksi {$produceQty} {$product['unit']} {$product['name']}"
+                    ]);
+
+                    $deductedDetails[] = "{$bb['name']} (-{$deduct['quantity']} {$bb['unit']})";
+                }
+
+                $newProdStock = (float)$product['stock_current'] + $produceQty;
+                $updProd = $pdo->prepare("UPDATE inventory_items SET stock_current = :new_stock, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+                $updProd->execute([':new_stock' => $newProdStock, ':id' => $productId]);
+
+                $insProdMut = $pdo->prepare("
+                    INSERT INTO inventory_mutations (item_id, type, quantity, mutation_date, officer_name, destination_or_source, notes)
+                    VALUES (:item_id, 'IN', :quantity, :mdate, :officer, :dest, :notes)
+                ");
+                $insProdMut->execute([
+                    ':item_id' => $productId,
+                    ':quantity' => $produceQty,
+                    ':mdate' => $today,
+                    ':officer' => $officer,
+                    ':dest' => 'Hasil Pengolahan / Produksi Pabrik',
+                    ':notes' => "Produksi {$produceQty} {$product['unit']} {$product['name']} selesai. " . (!empty($deductedDetails) ? "Bahan terpakai: " . implode(', ', $deductedDetails) : '')
+                ]);
+
+                $pdo->commit();
+
+                // Auto-sync langsung ke Google Spreadsheet
+                @sync_all_to_google_sheet($pdo);
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Produksi {$produceQty} {$product['unit']} '{$product['name']}' berhasil! " . (!empty($deductedDetails) ? "Bahan terpotong: " . implode(', ', $deductedDetails) : ''),
+                    'product_id' => $productId,
+                    'new_stock' => $newProdStock
+                ]);
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+            break;
+
+        case 'save_whatsapp':
+            $phone = trim($_POST['whatsapp_number'] ?? '');
+            $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
+            save_app_setting($pdo, 'whatsapp_number', $cleanPhone);
+            @sync_all_to_google_sheet($pdo);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Nomor WhatsApp resmi berhasil disimpan!',
+                'whatsapp_number' => $cleanPhone
+            ]);
+            break;
+
+        case 'get_settings':
+            $wa = get_app_setting($pdo, 'whatsapp_number', '');
+            echo json_encode([
+                'success' => true,
+                'settings' => [
+                    'whatsapp_number' => $wa
+                ]
             ]);
             break;
 

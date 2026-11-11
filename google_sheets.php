@@ -69,7 +69,7 @@ function send_gsheet_request(string $method = 'GET', array $payload = []): array
     }
 
     $ch = curl_init();
-    $timeout = 8; // Timeout 8 detik agar aman dari limit timeout serverless (Vercel)
+    $timeout = 12; // Timeout 12 detik agar aman dari limit timeout serverless (Vercel)
 
     if (strtoupper($method) === 'POST') {
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -134,10 +134,18 @@ function sync_all_to_google_sheet(PDO $pdo): array {
     ");
     $mutations = $stmtMut->fetchAll(PDO::FETCH_ASSOC);
 
+    // Ambil data pengaturan (WhatsApp dll)
+    $settings = [];
+    try {
+        $stmtSet = $pdo->query("SELECT setting_key, setting_value FROM app_settings");
+        $settings = $stmtSet->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Exception $e) {}
+
     $payload = [
         'action' => 'sync_all',
         'items' => $items,
         'mutations' => $mutations,
+        'settings' => $settings,
         'synced_at' => date('Y-m-d H:i:s')
     ];
 
@@ -276,6 +284,22 @@ function pull_from_google_sheet(PDO $pdo): array {
                         ':location_name' => $mut['location_name'] ?? null
                     ]);
                     $mutCount++;
+                }
+            }
+        }
+
+        // 3. Tarik Pengaturan (WhatsApp dll) jika ada
+        if (!empty($result['settings']) && is_array($result['settings'])) {
+            $setStmt = $pdo->prepare("
+                INSERT INTO app_settings (setting_key, setting_value, updated_at) 
+                VALUES (:k, :v, CURRENT_TIMESTAMP)
+                ON CONFLICT(setting_key) DO UPDATE SET 
+                    setting_value = excluded.setting_value,
+                    updated_at = CURRENT_TIMESTAMP
+            ");
+            foreach ($result['settings'] as $k => $v) {
+                if (is_string($k) && !empty($k)) {
+                    $setStmt->execute([':k' => $k, ':v' => (string)$v]);
                 }
             }
         }
