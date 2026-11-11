@@ -97,15 +97,31 @@ try {
         $pdo->exec("ALTER TABLE inventory_mutations ADD COLUMN location_name TEXT");
     }
 
-    // Auto-populate dari Google Spreadsheet jika database kosong (misal Vercel instance baru)
+    // Sinkronisasi cerdas dengan Google Spreadsheet pada setiap container
     try {
+        $lastSyncFile = $dataDir . '/last_cloud_pull.txt';
         $itemCount = (int)$pdo->query("SELECT COUNT(*) FROM inventory_items")->fetchColumn();
-        if ($itemCount === 0) {
+        $mutCount = (int)$pdo->query("SELECT COUNT(*) FROM inventory_mutations")->fetchColumn();
+
+        // Kondisi tarik data:
+        // 1. Container baru belum pernah sync (!file_exists)
+        // 2. ATAU tabel item kosong ($itemCount === 0)
+        // 3. ATAU tabel mutasi kosong ($mutCount === 0)
+        // 4. ATAU sudah lewat 30 detik sejak pull terakhir
+        $needsPull = !file_exists($lastSyncFile) 
+                     || $itemCount === 0 
+                     || $mutCount === 0 
+                     || (time() - @filemtime($lastSyncFile) > 30);
+
+        if ($needsPull) {
             require_once __DIR__ . '/google_sheets.php';
-            @pull_from_google_sheet($pdo);
+            $pullRes = @pull_from_google_sheet($pdo);
+            if (!empty($pullRes['success'])) {
+                @file_put_contents($lastSyncFile, date('Y-m-d H:i:s'));
+            }
         }
     } catch (Exception $syncEx) {
-        // Silently skip if network or config unavailable
+        // Silently skip jika offline atau jaringan terkendala
     }
 } catch (PDOException $e) {
     die("Database Connection Error: " . $e->getMessage());

@@ -141,7 +141,20 @@ function sync_all_to_google_sheet(PDO $pdo): array {
         'synced_at' => date('Y-m-d H:i:s')
     ];
 
-    return send_gsheet_request('POST', $payload);
+    $res = send_gsheet_request('POST', $payload);
+
+    // Perbarui timestamp sinkronisasi lokal
+    $syncPaths = [
+        sys_get_temp_dir() . '/brmp_data/last_cloud_pull.txt',
+        __DIR__ . '/data/last_cloud_pull.txt'
+    ];
+    foreach ($syncPaths as $sp) {
+        $spDir = dirname($sp);
+        if (!is_dir($spDir)) @mkdir($spDir, 0777, true);
+        @file_put_contents($sp, date('Y-m-d H:i:s'));
+    }
+
+    return $res;
 }
 
 /**
@@ -216,8 +229,59 @@ function pull_from_google_sheet(PDO $pdo): array {
             $count++;
         }
 
+        // 2. Tarik dan simpan data Riwayat Mutasi & Distribusi
+        $mutCount = 0;
+        if (!empty($result['mutations']) && is_array($result['mutations'])) {
+            $mutUpsert = $pdo->prepare("
+                INSERT INTO inventory_mutations (
+                    id, item_id, type, quantity, mutation_date, officer_name,
+                    destination_or_source, notes, latitude, longitude, location_name
+                ) VALUES (
+                    :id, :item_id, :type, :quantity, :mutation_date, :officer_name,
+                    :destination_or_source, :notes, :latitude, :longitude, :location_name
+                )
+                ON CONFLICT(id) DO UPDATE SET
+                    item_id = excluded.item_id,
+                    type = excluded.type,
+                    quantity = excluded.quantity,
+                    mutation_date = excluded.mutation_date,
+                    officer_name = excluded.officer_name,
+                    destination_or_source = excluded.destination_or_source,
+                    notes = excluded.notes,
+                    latitude = excluded.latitude,
+                    longitude = excluded.longitude,
+                    location_name = excluded.location_name
+            ");
+
+            foreach ($result['mutations'] as $mut) {
+                $mItemId = (int)($mut['item_id'] ?? 0);
+                if ($mItemId <= 0 && !empty($mut['item_code'])) {
+                    $chk = $pdo->prepare("SELECT id FROM inventory_items WHERE code = :code");
+                    $chk->execute([':code' => $mut['item_code']]);
+                    $mItemId = (int)$chk->fetchColumn();
+                }
+
+                if ($mItemId > 0) {
+                    $mutUpsert->execute([
+                        ':id' => $mut['id'] ?? null,
+                        ':item_id' => $mItemId,
+                        ':type' => in_array($mut['type'] ?? '', ['IN', 'OUT']) ? $mut['type'] : 'OUT',
+                        ':quantity' => (float)($mut['quantity'] ?? 0),
+                        ':mutation_date' => !empty($mut['mutation_date']) ? substr($mut['mutation_date'], 0, 10) : date('Y-m-d'),
+                        ':officer_name' => $mut['officer_name'] ?? 'Petugas Lapangan iCare NTB',
+                        ':destination_or_source' => $mut['destination_or_source'] ?? '-',
+                        ':notes' => $mut['notes'] ?? '',
+                        ':latitude' => (isset($mut['latitude']) && $mut['latitude'] !== '' && $mut['latitude'] !== null) ? (float)$mut['latitude'] : null,
+                        ':longitude' => (isset($mut['longitude']) && $mut['longitude'] !== '' && $mut['longitude'] !== null) ? (float)$mut['longitude'] : null,
+                        ':location_name' => $mut['location_name'] ?? null
+                    ]);
+                    $mutCount++;
+                }
+            }
+        }
+
         $pdo->commit();
-        return ['success' => true, 'message' => "Berhasil memuat $count item dari Google Spreadsheet ke database."];
+        return ['success' => true, 'message' => "Berhasil memuat $count item & $mutCount mutasi dari Google Spreadsheet ke database."];
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();

@@ -201,6 +201,24 @@ function setupEventHandlers() {
     if (formDistribute) {
         formDistribute.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const submitBtn = formDistribute.querySelector('button[type="submit"]');
+            let originalContent = '';
+            if (submitBtn) {
+                originalContent = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                submitBtn.innerHTML = '<span class="inline-block animate-spin mr-1.5">⏳</span> Menyimpan & Memetakan...';
+            }
+
+            const resetBtn = () => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    submitBtn.innerHTML = originalContent;
+                }
+            };
+
             const formData = new FormData(formDistribute);
             formData.append('action', 'add_mutation');
             formData.append('type', 'OUT');
@@ -219,12 +237,6 @@ function setupEventHandlers() {
                 if (rec) formData.set('destination_or_source', rec);
             }
 
-            const submitBtn = document.getElementById('btn-submit-distribute');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span>Menyimpan & Memetakan...</span>';
-            }
-
             try {
                 const res = await fetch('api.php', { method: 'POST', body: formData });
                 const data = await res.json();
@@ -233,28 +245,23 @@ function setupEventHandlers() {
                     closeModal('modal-distribute');
                     formDistribute.reset();
 
-                    // Tampilkan minimap hasil distribusi langsung dengan titik barunya!
-                    showDistributionResultMap(data, currentDistributingItem);
-                    
-                    // Segarkan data peta utama di latar belakang
-                    if (typeof loadDistributionLocations === 'function') {
-                        loadDistributionLocations();
+                    // Update live stock di card dashboard jika ada
+                    if (data.item_id) {
+                        const cardStock = document.getElementById(`card-stock-${data.item_id}`);
+                        if (cardStock) {
+                            cardStock.textContent = `${Number(data.new_stock).toLocaleString('id-ID')} ${data.item_unit || 'kg'}`;
+                        }
                     }
+
+                    // Reload halaman agar semua tabel, log mutasi, dan peta terbarui secara akurat
+                    setTimeout(() => window.location.reload(), 900);
                 } else {
-                    showToast(data.message, 'error');
+                    showToast(data.message || 'Gagal mencatat distribusi.', 'error');
+                    resetBtn();
                 }
             } catch (err) {
-                showToast('Gagal menghubungi server.', 'error');
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = `
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                        <span>Simpan & Tampilkan di Minimap</span>
-                    `;
-                }
+                showToast('Gagal menghubungi server. Periksa koneksi internet Anda.', 'error');
+                resetBtn();
             }
         });
     }
@@ -1134,6 +1141,12 @@ async function filterMinimapByProduct(productId) {
 
 function openDistributeModal(item) {
     if (!item) return;
+
+    if ((parseFloat(item.stock_current) || 0) <= 0) {
+        showToast(`Stok "${item.name}" saat ini kosong (0 ${item.unit || 'kg'}). Silakan tambah stok terlebih dahulu sebelum menyalurkan.`, 'error');
+        return;
+    }
+
     currentDistributingItem = item;
 
     const itemIdInput = document.getElementById('dist-item-id');

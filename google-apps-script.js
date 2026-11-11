@@ -31,9 +31,11 @@ function doGet(e) {
 
   if (action === 'get_all') {
     var items = getItemsFromSheets(ss);
+    var mutations = getMutationsFromSheets(ss);
     return createJsonResponse({
       success: true,
-      items: items
+      items: items,
+      mutations: mutations
     });
   }
 
@@ -121,27 +123,82 @@ function syncItemsSheet(ss, items) {
 
 function syncMutationsSheet(ss, mutations) {
   var mutSheet = getOrCreateSheet(ss, 'Riwayat_Mutasi', '#1E5E3A');
-  var headers = ['ID Mutasi', 'Tanggal', 'Tipe (IN/OUT)', 'Kode Item', 'Nama Item', 'Jumlah Mutasi', 'Satuan', 'Petugas', 'Tujuan / Sumber', 'Lokasi Distribusi (Peta)', 'Catatan'];
+  var headers = ['ID Mutasi', 'ID Item', 'Tanggal', 'Tipe (IN/OUT)', 'Kode Item', 'Nama Item', 'Jumlah Mutasi', 'Satuan', 'Petugas', 'Tujuan / Sumber', 'Nama Lokasi', 'Latitude', 'Longitude', 'Catatan'];
 
   var rows = [headers];
   for (var i = 0; i < mutations.length; i++) {
     var m = mutations[i];
     rows.push([
       m.id,
-      m.mutation_date,
-      m.type,
+      m.item_id || '',
+      m.mutation_date ? String(m.mutation_date).substring(0, 10) : '',
+      m.type || 'OUT',
       m.item_code || '-',
       m.item_name || '-',
       Number(m.quantity) || 0,
       m.unit || 'kg',
       m.officer_name || '-',
       m.destination_or_source || '-',
-      m.location_name || (m.latitude ? m.latitude + ', ' + m.longitude : '-'),
+      m.location_name || '',
+      (m.latitude !== null && m.latitude !== undefined && m.latitude !== '') ? Number(m.latitude) : '',
+      (m.longitude !== null && m.longitude !== undefined && m.longitude !== '') ? Number(m.longitude) : '',
       m.notes || '-'
     ]);
   }
 
   writeAndFormatSheet(mutSheet, rows);
+}
+
+function getMutationsFromSheets(ss) {
+  var mutSheet = ss.getSheetByName('Riwayat_Mutasi');
+  if (!mutSheet) return [];
+  var data = mutSheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+
+  var mutations = [];
+  for (var r = 1; r < data.length; r++) {
+    var row = data[r];
+    if (!row[0]) continue; // ID kosong
+
+    // Cek format kolom (14 kolom standar baru vs 11 kolom lama)
+    if (row.length >= 13) {
+      mutations.push({
+        id: row[0],
+        item_id: row[1],
+        mutation_date: row[2] ? (row[2] instanceof Date ? Utilities.formatDate(row[2], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(row[2])) : '',
+        type: row[3] || 'OUT',
+        item_code: row[4] || '',
+        item_name: row[5] || '',
+        quantity: Number(row[6]) || 0,
+        unit: row[7] || 'kg',
+        officer_name: row[8] || '',
+        destination_or_source: row[9] || '',
+        location_name: row[10] || '',
+        latitude: row[11] !== '' ? Number(row[11]) : null,
+        longitude: row[12] !== '' ? Number(row[12]) : null,
+        notes: row[13] || ''
+      });
+    } else {
+      // Format 11 kolom lama
+      mutations.push({
+        id: row[0],
+        item_id: null,
+        mutation_date: row[1] ? (row[1] instanceof Date ? Utilities.formatDate(row[1], Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(row[1])) : '',
+        type: row[2] || 'OUT',
+        item_code: row[3] || '',
+        item_name: row[4] || '',
+        quantity: Number(row[5]) || 0,
+        unit: row[6] || 'kg',
+        officer_name: row[7] || '',
+        destination_or_source: row[8] || '',
+        location_name: row[9] || '',
+        latitude: null,
+        longitude: null,
+        notes: row[10] || ''
+      });
+    }
+  }
+  return mutations;
 }
 
 function getItemsFromSheets(ss) {
