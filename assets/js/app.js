@@ -397,31 +397,37 @@ function closeModal(id) {
 
 // Open Detail Modal
 function openDetailModal(item) {
+    if (!item) return;
     currentDetailItem = item;
 
-    document.getElementById('detail-code').textContent = item.code;
-    document.getElementById('detail-name').textContent = item.name;
-    document.getElementById('detail-type').textContent = item.type.toUpperCase().replace('_', ' ');
-    document.getElementById('detail-category').textContent = item.category;
-    document.getElementById('detail-location').textContent = item.storage_location || 'Gudang Utama iCare NTB';
-    document.getElementById('detail-stock').textContent = `${Number(item.stock_current).toLocaleString('id-ID')} ${item.unit}`;
-    document.getElementById('detail-min').textContent = `${Number(item.stock_minimum).toLocaleString('id-ID')} ${item.unit}`;
-    document.getElementById('detail-price').textContent = `Rp ${Number(item.price_per_unit).toLocaleString('id-ID')}`;
+    const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+
+    setEl('detail-code', item.code || '-');
+    setEl('detail-name', item.name || '-');
+    setEl('detail-type', (item.type || '').toUpperCase().replace('_', ' '));
+    setEl('detail-category', item.category || '-');
+    setEl('detail-location', item.storage_location || 'Gudang Utama iCare NTB');
+    setEl('detail-stock', `${Number(item.stock_current || 0).toLocaleString('id-ID')} ${item.unit || 'kg'}`);
+    setEl('detail-min', `${Number(item.stock_minimum || 0).toLocaleString('id-ID')} ${item.unit || 'kg'}`);
+    setEl('detail-price', `Rp ${Number(item.price_per_unit || 0).toLocaleString('id-ID')}`);
 
     const detailImg = document.getElementById('detail-img');
     if (detailImg) {
         detailImg.src = item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80';
     }
 
-    document.getElementById('detail-desc').textContent = item.description || '-';
+    setEl('detail-desc', item.description || 'Pencatatan komoditas mandiri sistem Rumah Produksi iCare NTB');
 
-    // Specs
-    document.getElementById('detail-spec1-label').textContent = item.spec_1_label || 'Parameter 1';
-    document.getElementById('detail-spec1-val').textContent = item.spec_1_value || '-';
-    document.getElementById('detail-spec2-label').textContent = item.spec_2_label || 'Parameter 2';
-    document.getElementById('detail-spec2-val').textContent = item.spec_2_value || '-';
-    document.getElementById('detail-spec3-label').textContent = item.spec_3_label || 'Parameter 3';
-    document.getElementById('detail-spec3-val').textContent = item.spec_3_value || '-';
+    // Specs jika ada
+    setEl('detail-spec1-label', item.spec_1_label || 'Parameter 1');
+    setEl('detail-spec1-val', item.spec_1_value || '-');
+    setEl('detail-spec2-label', item.spec_2_label || 'Parameter 2');
+    setEl('detail-spec2-val', item.spec_2_value || '-');
+    setEl('detail-spec3-label', item.spec_3_label || 'Parameter 3');
+    setEl('detail-spec3-val', item.spec_3_value || '-');
 
     // If it's a finished product, show "Lihat Peta Sebaran Produk" button
     const btnMapDetail = document.getElementById('btn-map-from-detail');
