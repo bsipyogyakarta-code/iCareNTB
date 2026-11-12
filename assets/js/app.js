@@ -273,6 +273,24 @@ function setupEventHandlers() {
     if (formEditItem) {
         formEditItem.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const submitBtn = formEditItem.querySelector('button[type="submit"]');
+            let origHtml = '';
+            if (submitBtn) {
+                origHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                submitBtn.innerHTML = '<span class="inline-block animate-spin mr-1.5">⏳</span> Menyimpan Perubahan & Foto...';
+            }
+
+            const resetBtn = () => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    submitBtn.innerHTML = origHtml;
+                }
+            };
+
             const formData = new FormData(formEditItem);
             formData.append('action', 'update_item');
 
@@ -280,14 +298,16 @@ function setupEventHandlers() {
                 const res = await fetch('api.php', { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.success) {
-                    showToast(data.message);
+                    showToast(data.message || 'Data dan foto berhasil diperbarui!');
                     closeModal('modal-edit-item');
-                    setTimeout(() => window.location.reload(), 1000);
+                    setTimeout(() => window.location.reload(), 800);
                 } else {
-                    showToast(data.message, 'error');
+                    showToast(data.message || 'Gagal memperbarui item.', 'error');
+                    resetBtn();
                 }
             } catch (err) {
-                showToast('Gagal memperbarui item.', 'error');
+                showToast('Gagal memperbarui item. Periksa koneksi internet Anda.', 'error');
+                resetBtn();
             }
         });
     }
@@ -672,12 +692,30 @@ async function previewEditImage(input) {
     const urlInput = document.getElementById('edit-image');
     if (!preview) return;
     if (input.files && input.files[0]) {
-        const compressed = await compressAndConvertImage(input.files[0], 800, 0.8);
-        preview.src = compressed;
-        if (urlInput) {
-            urlInput.value = compressed;
+        // Tampilkan thumbnail instan dari file lokal
+        try {
+            preview.src = URL.createObjectURL(input.files[0]);
+        } catch (e) {}
+
+        // Kompres otomatis agar data base64 ringan (~30-50KB) dan cepat diupload
+        const compressed = await compressAndConvertImage(input.files[0], 600, 0.75);
+        if (compressed) {
+            preview.src = compressed;
+            if (urlInput) {
+                urlInput.value = compressed;
+            }
         }
     }
+}
+
+function selectEditPhotoPreset(url) {
+    const preview = document.getElementById('edit-image-preview');
+    const urlInput = document.getElementById('edit-image');
+    const fileInput = document.getElementById('edit-image-file');
+    if (fileInput) fileInput.value = '';
+    if (urlInput) urlInput.value = url;
+    if (preview) preview.src = url;
+    showToast('Foto preset berhasil dipilih!');
 }
 
 function previewEditImageUrl(url) {

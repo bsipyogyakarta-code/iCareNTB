@@ -1121,16 +1121,57 @@ $metricsPRD = getMetrics($produkList);
                 </div>
             </div>
 
-            <!-- Foto -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1.5">Foto Produk / Bahan</label>
-                <div class="space-y-2">
+            <!-- Foto Produk / Bahan -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-700">Foto Produk / Bahan Baku</label>
+                
+                <!-- Preview Foto Saat Ini -->
+                <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+                    <div id="edit-image-preview-container" class="w-20 h-20 bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center p-1 relative shrink-0 shadow-2xs">
+                        <img id="edit-image-preview" src="" alt="Preview Foto" class="max-h-full max-w-full object-contain rounded-lg">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <span class="text-xs font-bold text-slate-800 block">Preview Foto Terpilih</span>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Unggah dari galeri HP / file komputer, atau tempel link gambar di bawah:</p>
+                    </div>
+                </div>
+
+                <!-- Input Upload File Galeri / Kamera -->
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">1. Unggah File Foto (HP / Laptop):</label>
                     <input type="file" name="image_file" id="edit-image-file" accept="image/*" onchange="previewEditImage(this)"
-                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-2xl p-1 bg-slate-50/50">
-                    <input type="text" id="edit-image" name="image_url" placeholder="Atau link URL foto (https://...)" oninput="previewEditImageUrl(this.value)"
-                           class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
-                    <div id="edit-image-preview-container" class="h-28 w-full bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center p-2 relative">
-                        <img id="edit-image-preview" src="" alt="Foto Item" class="max-h-full max-w-full object-contain rounded-xl">
+                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer border border-slate-200 rounded-xl p-1 bg-white">
+                </div>
+
+                <!-- Input URL Link Foto -->
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">2. Atau Tempel Tautan / URL Foto (https://...):</label>
+                    <input type="text" id="edit-image" name="image_url" placeholder="https://..." oninput="previewEditImageUrl(this.value)"
+                           class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono">
+                </div>
+
+                <!-- Pilihan Cepat / Preset Foto Populer -->
+                <div class="pt-1">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pilihan Cepat Foto Berkualitas:</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="selectEditPhotoPreset('https://images.unsplash.com/photo-1596733430284-f7437764b1a9?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                            🧪 Konsentrat
+                        </button>
+                        <button type="button" onclick="selectEditPhotoPreset('https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                            🌽 Jagung
+                        </button>
+                        <button type="button" onclick="selectEditPhotoPreset('https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                            🌾 Dedak Padi
+                        </button>
+                        <button type="button" onclick="selectEditPhotoPreset('https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                            🐟 Tepung Ikan
+                        </button>
+                        <button type="button" onclick="selectEditPhotoPreset('https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                            🐔 Pakan Pedaging
+                        </button>
+                        <button type="button" onclick="selectEditPhotoPreset('https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                            🥚 Pakan Petelur
+                        </button>
                     </div>
                 </div>
             </div>

@@ -473,9 +473,11 @@ try {
             }
 
             // Handle Foto Baru jika diunggah atau diisi URL
-            $imageUrl = trim($_POST['image_url'] ?? '');
+            $hasNewUpload = !empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK;
+            $postedUrl = trim($_POST['image_url'] ?? '');
+            $imageUrl = '';
 
-            if (empty($imageUrl) && !empty($_FILES['image_file']['name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+            if ($hasNewUpload) {
                 $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
                 $ext = strtolower(pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION));
                 if (in_array($ext, $allowedExts)) {
@@ -497,8 +499,13 @@ try {
                 }
             }
 
+            // Jika tidak ada upload file baru, gunakan URL yang diinput atau pertahankan foto lama
             if (empty($imageUrl)) {
-                $imageUrl = $existing['image_url'];
+                if (!empty($postedUrl)) {
+                    $imageUrl = $postedUrl;
+                } else {
+                    $imageUrl = $existing['image_url'];
+                }
             }
 
             $upd = $pdo->prepare("

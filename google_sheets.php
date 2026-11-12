@@ -208,10 +208,7 @@ function pull_from_google_sheet(PDO $pdo): array {
         $count = 0;
         foreach ($result['items'] as $item) {
             $itemType = $item['type'] ?? 'produk';
-            $defaultImg = ($itemType === 'bahan_baku')
-                ? 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&auto=format&fit=crop&q=80'
-                : 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80';
-            $imageUrl = !empty($item['image_url']) ? $item['image_url'] : $defaultImg;
+            $imageUrl = (!empty($item['image_url']) && trim($item['image_url']) !== '-') ? trim($item['image_url']) : null;
 
             $upsertStmt->execute([
                 ':id' => $item['id'] ?? null,

@@ -78,14 +78,20 @@ function syncItemsSheet(ss, items) {
   var prdSheet = getOrCreateSheet(ss, 'Produk_Pakan', '#1E5E3A');
 
   // Headers
-  var headersBB = ['ID', 'Kode', 'Nama Bahan Baku', 'Kategori', 'Stok Saat Ini', 'Satuan', 'Batas Minimal', 'Gudang / Lokasi', 'Harga Satuan (Rp)', 'Spesifikasi Mutu', 'Catatan'];
-  var headersPRD = ['ID', 'Kode', 'Nama Produk Pakan', 'Kategori', 'Stok Saat Ini', 'Satuan', 'Batas Minimal', 'Gudang / Lokasi', 'Harga Satuan (Rp)', 'Target / Standar', 'Deskripsi'];
+  var headersBB = ['ID', 'Kode', 'Nama Bahan Baku', 'Kategori', 'Stok Saat Ini', 'Satuan', 'Batas Minimal', 'Gudang / Lokasi', 'Harga Satuan (Rp)', 'Spesifikasi Mutu', 'Catatan', 'URL Foto'];
+  var headersPRD = ['ID', 'Kode', 'Nama Produk Pakan', 'Kategori', 'Stok Saat Ini', 'Satuan', 'Batas Minimal', 'Gudang / Lokasi', 'Harga Satuan (Rp)', 'Target / Standar', 'Deskripsi', 'URL Foto'];
 
   var rowsBB = [headersBB];
   var rowsPRD = [headersPRD];
 
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
+    var imgVal = item.image_url || '-';
+    // Mencegah error limit cell spreadsheet jika base64 terlalu besar
+    if (imgVal.indexOf('data:image/') === 0 && imgVal.length > 500) {
+      imgVal = '-';
+    }
+
     var specText = [item.spec_1_label ? item.spec_1_label + ': ' + item.spec_1_value : '',
                     item.spec_2_label ? item.spec_2_label + ': ' + item.spec_2_value : '',
                     item.spec_3_label ? item.spec_3_label + ': ' + item.spec_3_value : ''].filter(Boolean).join(' | ');
@@ -102,7 +108,8 @@ function syncItemsSheet(ss, items) {
         item.storage_location || '-',
         Number(item.price_per_unit) || 0,
         specText || '-',
-        item.description || '-'
+        item.description || '-',
+        imgVal
       ]);
     } else {
       rowsPRD.push([
@@ -116,7 +123,8 @@ function syncItemsSheet(ss, items) {
         item.storage_location || '-',
         Number(item.price_per_unit) || 0,
         item.target_stage || specText || '-',
-        item.description || '-'
+        item.description || '-',
+        imgVal
       ]);
     }
   }
@@ -232,7 +240,8 @@ function getItemsFromSheets(ss) {
         storage_location: row[7],
         price_per_unit: row[8],
         type: sheets[s].type,
-        description: row[10] || ''
+        description: row[10] || '',
+        image_url: (row[11] && String(row[11]) !== '-' && String(row[11]).trim() !== '') ? String(row[11]).trim() : ''
       });
     }
   }
