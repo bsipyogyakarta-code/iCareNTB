@@ -1,5 +1,5 @@
 <?php
-// google_sheets.php - Modul Integrasi & Sinkronisasi Google Spreadsheet untuk Rumah Produksi BRMP DIY
+// google_sheets.php - Modul Integrasi & Sinkronisasi Google Spreadsheet untuk Rumah Produksi iCare NTB
 
 require_once __DIR__ . '/db.php';
 
@@ -125,11 +125,23 @@ function sync_all_to_google_sheet(PDO $pdo): array {
     $stmtItems = $pdo->query("SELECT * FROM inventory_items ORDER BY type, id ASC");
     $items = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
 
+    // Sanitasi foto base64 untuk Spreadsheet agar tidak melebihi limit cell & payload
+    foreach ($items as &$it) {
+        if (!empty($it['image_url']) && strpos($it['image_url'], 'data:image/') === 0 && strlen($it['image_url']) > 500) {
+            $it['image_url'] = '-';
+        }
+    }
+    unset($it);
+
     // Ambil data mutasi log
     $stmtMut = $pdo->query("
-        SELECT m.*, i.name as item_name, i.code as item_code, i.unit, i.type as item_type
+        SELECT m.*, 
+               COALESCE(i.name, 'Item #' || m.item_id) as item_name, 
+               COALESCE(i.code, 'PRD-DIST') as item_code, 
+               COALESCE(i.unit, 'kg') as unit, 
+               COALESCE(i.type, 'produk') as item_type
         FROM inventory_mutations m
-        JOIN inventory_items i ON m.item_id = i.id
+        LEFT JOIN inventory_items i ON m.item_id = i.id
         ORDER BY m.mutation_date DESC, m.id DESC
     ");
     $mutations = $stmtMut->fetchAll(PDO::FETCH_ASSOC);

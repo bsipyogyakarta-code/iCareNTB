@@ -1,5 +1,5 @@
 <?php
-// admin.php - Panel Dashboard Manajemen Khusus Administrator BRMP DIY
+// admin.php - Panel Dashboard Manajemen Khusus Administrator iCare NTB
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/google_sheets.php';
@@ -604,7 +604,7 @@ $metricsPRD = getMetrics($produkList);
                                 <td class="py-3.5 px-4 text-right font-black <?= $m['type'] === 'IN' ? 'text-emerald-700' : 'text-rose-600' ?>">
                                     <?= $m['type'] === 'IN' ? '+' : '-' ?><?= number_format((float)($m['quantity'] ?? 0), 0, ',', '.') ?> <?= htmlspecialchars($m['unit']) ?>
                                 </td>
-                                <td class="py-3.5 px-4 text-slate-600 font-medium"><?= htmlspecialchars($m['officer_name'] ?? 'Tim BRMP') ?></td>
+                                <td class="py-3.5 px-4 text-slate-600 font-medium"><?= htmlspecialchars($m['officer_name'] ?? 'Tim iCare NTB') ?></td>
                                 <td class="py-3.5 px-4 text-slate-500">
                                     <div class="line-clamp-1" title="<?= htmlspecialchars($m['notes'] ?? '-') ?>"><?= htmlspecialchars($m['notes'] ?? '-') ?></div>
                                     <?php if (!empty($m['location_name'])): ?>
@@ -1014,6 +1014,31 @@ $metricsPRD = getMetrics($produkList);
                                    class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400">
                         </div>
 
+                        <!-- Pilihan Cepat / Preset Foto Populer -->
+                        <div class="pt-1">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pilihan Cepat Foto:</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="selectAddPhotoPreset('https://images.unsplash.com/photo-1596733430284-f7437764b1a9?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                                    🧪 Konsentrat
+                                </button>
+                                <button type="button" onclick="selectAddPhotoPreset('https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                                    🌽 Jagung Giling
+                                </button>
+                                <button type="button" onclick="selectAddPhotoPreset('https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                                    🌾 Dedak Padi
+                                </button>
+                                <button type="button" onclick="selectAddPhotoPreset('https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                                    🐟 Tepung Ikan
+                                </button>
+                                <button type="button" onclick="selectAddPhotoPreset('https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                                    🐔 Pakan Ayam
+                                </button>
+                                <button type="button" onclick="selectAddPhotoPreset('https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=500&auto=format&fit=crop&q=80')" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-700 rounded-lg transition-smooth border border-slate-200">
+                                    🐟 Pelet Ikan
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Preview Foto Box -->
                         <div id="add-image-preview-container" class="hidden h-32 w-full bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden flex items-center justify-center p-2 relative group">
                             <img id="add-image-preview" src="" alt="Preview Foto" class="max-h-full max-w-full object-contain rounded-xl">
@@ -1248,7 +1273,7 @@ $metricsPRD = getMetrics($produkList);
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Petugas BRMP</label>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Petugas Penyaluran</label>
                 <input type="text" name="officer_name" value="<?= htmlspecialchars($_SESSION['admin_user'] ?? 'Petugas Gudang iCare NTB') ?>" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl">
             </div>
 

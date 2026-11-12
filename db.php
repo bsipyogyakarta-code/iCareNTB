@@ -1,5 +1,5 @@
 <?php
-// db.php - Database connection & auto initialization for Rumah Produksi BRMP DIY
+// db.php - Database connection & auto initialization for Rumah Produksi iCare NTB
 
 // Deteksi lingkungan serverless Vercel (read-only filesystem)
 $isVercel = isset($_ENV['VERCEL']) || getenv('VERCEL') || (isset($_SERVER['VERCEL']) && $_SERVER['VERCEL']);

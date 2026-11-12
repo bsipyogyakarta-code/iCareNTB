@@ -1,4 +1,4 @@
-// assets/js/app.js - Rumah Produksi BRMP DIY (Manajemen Pakan Jadi & Bahan Baku)
+// assets/js/app.js - Rumah Produksi iCare NTB (Manajemen Pakan Jadi & Bahan Baku)
 
 let currentDetailItem = null;
 let currentProductRecipe = [];
@@ -151,6 +151,14 @@ function setupEventHandlers() {
                 });
             };
 
+            // Jika foto sudah dikompresi ke base64 di add-image-url, kosongkan file input mentah
+            // agar browser tidak mengirim file kamera smartphone berukuran 5MB-15MB yang ditolak PHP/serverless
+            const addUrlInput = document.getElementById('add-image-url');
+            const addFileInput = document.getElementById('add-image-file');
+            if (addUrlInput && addUrlInput.value.startsWith('data:image/') && addFileInput) {
+                addFileInput.value = '';
+            }
+
             const formData = new FormData(formAddItem);
             formData.append('action', 'add_item');
 
@@ -290,6 +298,13 @@ function setupEventHandlers() {
                     submitBtn.innerHTML = origHtml;
                 }
             };
+
+            // Hindari upload file mentah besar jika sudah terkompresi di input URL
+            const editUrlInput = document.getElementById('edit-image');
+            const editFileInput = document.getElementById('edit-image-file');
+            if (editUrlInput && editUrlInput.value.startsWith('data:image/') && editFileInput) {
+                editFileInput.value = '';
+            }
 
             const formData = new FormData(formEditItem);
             formData.append('action', 'update_item');
@@ -673,13 +688,33 @@ async function previewAddImage(input) {
     if (!container || !preview) return;
 
     if (input.files && input.files[0]) {
-        const compressed = await compressAndConvertImage(input.files[0], 800, 0.8);
-        preview.src = compressed;
-        container.classList.remove('hidden');
-        if (urlInput) {
-            urlInput.value = compressed;
+        // Tampilkan preview instan
+        try {
+            preview.src = URL.createObjectURL(input.files[0]);
+            container.classList.remove('hidden');
+        } catch (e) {}
+
+        // Kompres otomatis gambar kamera agar ringan (<100KB)
+        const compressed = await compressAndConvertImage(input.files[0], 700, 0.75);
+        if (compressed) {
+            preview.src = compressed;
+            if (urlInput) {
+                urlInput.value = compressed;
+            }
         }
     }
+}
+
+function selectAddPhotoPreset(url) {
+    const container = document.getElementById('add-image-preview-container');
+    const preview = document.getElementById('add-image-preview');
+    const urlInput = document.getElementById('add-image-url');
+    const fileInput = document.getElementById('add-image-file');
+    if (fileInput) fileInput.value = '';
+    if (urlInput) urlInput.value = url;
+    if (preview) preview.src = url;
+    if (container) container.classList.remove('hidden');
+    showToast('Foto preset berhasil dipilih!');
 }
 
 function previewAddImageUrl(url) {
@@ -732,7 +767,7 @@ function previewEditImageUrl(url) {
 }
 
 // ========================================================
-// FITUR LOKASI & MINIMAP DISTRIBUSI BENIH BRMP DIY
+// FITUR LOKASI & MINIMAP DISTRIBUSI PAKAN iCare NTB
 // ========================================================
 
 function initDistributionMinimap() {
@@ -935,7 +970,7 @@ function resetMinimapView() {
     distributionMap.flyTo([-8.65, 117.0], 9);
 }
 
-// Preset Wilayah DIY di Modal Mutasi
+// Preset Wilayah NTB di Modal Mutasi
 function setupLocationPresets() {
     const presetSelect = document.getElementById('mut-preset-location');
     const latInput = document.getElementById('mut-lat');

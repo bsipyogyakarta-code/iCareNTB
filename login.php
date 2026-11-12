@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
                     <div class="relative">
-                        <input type="password" name="password" id="password" required value="brmpdiy" class="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-smooth">
+                        <input type="password" name="password" id="password" required placeholder="Masukkan password admin" class="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-smooth">
                         <div class="absolute left-3.5 top-3 text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         </div>
@@ -124,10 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Petunjuk Akun Default -->
             <div class="mt-6 p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl text-[11px] text-slate-500">
-                <div class="font-bold text-slate-700 mb-1">🔑 Kredensial Default Sistem:</div>
+                <div class="font-bold text-slate-700 mb-1">🔑 Kredensial Administrator Sistem:</div>
                 <div class="flex items-center justify-between">
                     <span>Username: <strong class="text-slate-800">admin</strong></span>
-                    <span>Password: <strong class="text-slate-800">brmpdiy</strong></span>
+                    <span>Password: <strong class="text-slate-800">admin123</strong></span>
                 </div>
             </div>
         </div>

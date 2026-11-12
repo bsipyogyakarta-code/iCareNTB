@@ -1,5 +1,5 @@
 <?php
-// index.php - Katalog Publik Rumah Produksi BRMP DIY (Khusus Pakan Jadi)
+// index.php - Katalog Publik Rumah Produksi iCare NTB (Khusus Pakan Jadi)
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 $currentWhatsApp = get_app_setting($pdo, 'whatsapp_number', '');

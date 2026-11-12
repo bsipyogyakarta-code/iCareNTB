@@ -1,9 +1,37 @@
 <?php
-// api.php - REST API handler for Rumah Produksi BRMP DIY
+// api.php - REST API handler for Rumah Produksi iCare NTB
 header('Content-Type: application/json');
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/google_sheets.php';
+
+/**
+ * Simpan string gambar Base64 ke file fisik jika direktori writable (VPS/hosting lokal)
+ * Jika serverless read-only (Vercel), fungsi ini mempertahankan data URL Base64 secara aman.
+ */
+function save_base64_image_if_possible(string $base64Url): string {
+    if (!preg_match('/^data:image\/(\w+);base64,(.+)$/', $base64Url, $matches)) {
+        return $base64Url;
+    }
+    $ext = strtolower($matches[1]);
+    if ($ext === 'jpeg') $ext = 'jpg';
+    if (!in_array($ext, ['jpg', 'png', 'webp', 'gif'])) $ext = 'jpg';
+
+    $uploadsDir = __DIR__ . '/uploads';
+    if (!is_dir($uploadsDir)) {
+        @mkdir($uploadsDir, 0777, true);
+    }
+    if (is_dir($uploadsDir) && is_writable($uploadsDir)) {
+        $decoded = @base64_decode($matches[2]);
+        if ($decoded !== false) {
+            $filename = 'img_' . time() . '_' . bin2hex(random_bytes(3)) . '.' . $ext;
+            if (@file_put_contents($uploadsDir . '/' . $filename, $decoded) !== false) {
+                return 'uploads/' . $filename;
+            }
+        }
+    }
+    return $base64Url;
+}
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -69,10 +97,16 @@ try {
             $itemId = $_GET['item_id'] ?? null;
             $type = $_GET['type'] ?? null;
             $sql = "
-                SELECT m.*, i.name as item_name, i.code as item_code, i.unit, i.type as item_type, i.image_url, i.category as item_category
+                SELECT m.*, 
+                       COALESCE(i.name, 'Item #' || m.item_id) as item_name, 
+                       COALESCE(i.code, 'PRD-DIST') as item_code, 
+                       COALESCE(i.unit, 'kg') as unit, 
+                       COALESCE(i.type, 'produk') as item_type, 
+                       i.image_url, 
+                       COALESCE(i.category, 'Pakan Jadi') as item_category
                 FROM inventory_mutations m
-                JOIN inventory_items i ON m.item_id = i.id
-                WHERE m.latitude IS NOT NULL AND m.longitude IS NOT NULL
+                LEFT JOIN inventory_items i ON m.item_id = i.id
+                WHERE m.latitude IS NOT NULL AND m.longitude IS NOT NULL AND (m.latitude != 0 OR m.longitude != 0)
             ";
             $params = [];
             if (!empty($itemId)) {
@@ -80,7 +114,7 @@ try {
                 $params[':item_id'] = $itemId;
             }
             if (!empty($type)) {
-                $sql .= " AND i.type = :itype";
+                $sql .= " AND (i.type = :itype OR (i.type IS NULL AND :itype = 'produk'))";
                 $params[':itype'] = $type;
             }
             $sql .= " ORDER BY m.mutation_date DESC, m.id DESC";
@@ -134,6 +168,8 @@ try {
                 $imageUrl = ($type === 'bahan_baku')
                     ? 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=500&auto=format&fit=crop&q=80'
                     : 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=80';
+            } else {
+                $imageUrl = save_base64_image_if_possible($imageUrl);
             }
 
             try {
@@ -506,6 +542,10 @@ try {
                 } else {
                     $imageUrl = $existing['image_url'];
                 }
+            }
+
+            if (!empty($imageUrl)) {
+                $imageUrl = save_base64_image_if_possible($imageUrl);
             }
 
             $upd = $pdo->prepare("

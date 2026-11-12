@@ -3,7 +3,7 @@
 
 // Konfigurasi Session & Cookie Token
 define('ADMIN_USERNAME', 'admin');
-define('ADMIN_PASSWORD', 'brmpdiy'); // Menerima brmpdiy atau admin123
+define('ADMIN_PASSWORD', 'admin123'); // Password resmi iCare NTB (juga menerima brmpdiy)
 define('AUTH_COOKIE_NAME', 'icare_admin_session');
 define('AUTH_SECRET_KEY', 'icare_ntb_secure_jwt_token_secret_key_2026');
 define('AUTH_LIFETIME', 86400 * 30); // 30 hari
